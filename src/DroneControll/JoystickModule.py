@@ -100,6 +100,9 @@ while done == False:
             if event.key == pygame.K_l:
                 sim.load_path_from_json()
 
+            if event.key == pygame.K_SPACE:
+                sim.abort_automation()
+
 
 
 

@@ -57,12 +57,12 @@ def init():
 
 
 
-    client.enableApiControl(True, vehicle_name="Drone1")  # enable API control on Drone0
-    client.armDisarm(True, vehicle_name="Drone1")  # arm Drone0
-
-    client.takeoffAsync(vehicle_name="Drone1").join()  # let Drone0 take-off
-    # client.moveToPositionAsync(0, 0, -4.5, 1, vehicle_name="Drone1").join()
-    client.hoverAsync(vehicle_name="Drone1").join()
+    # client.enableApiControl(True, vehicle_name="Drone1")  # enable API control on Drone0
+    # client.armDisarm(True, vehicle_name="Drone1")  # arm Drone0
+    #
+    # client.takeoffAsync(vehicle_name="Drone1").join()  # let Drone0 take-off
+    # # client.moveToPositionAsync(0, 0, -4.5, 1, vehicle_name="Drone1").join()
+    # client.hoverAsync(vehicle_name="Drone1").join()
 
     # use this to imidiate move
     # pose = airsim.Pose(airsim.Vector3r(0, 0, -300), airsim.to_quaternion(0, 0, 0))  # PRY in radians
@@ -139,6 +139,25 @@ def update_buttons(buttons_list):
     #     delta_vertical_speed = 0
 
 
+def abort_automation():
+    global vertical_position
+    global automatic_mode
+    global camera_heading
+
+    pose = client.simGetVehiclePose(vehicle_name="Drone0")
+    camera_heading = round(math.degrees(airsim.to_eularian_angles(pose.orientation)[2]), 3)
+
+    vertical_position = round(pose.position.z_val, 3)
+
+    # client.rotateToYawAsync(yaw, vehicle_name="Drone0").join()
+
+    client.hoverAsync().join()
+    client.moveByVelocityZAsync(0, 0, vertical_position, 2, airsim.DrivetrainType.MaxDegreeOfFreedom,
+                                airsim.YawMode(False, camera_heading), vehicle_name="Drone0").join()
+    automatic_mode = False
+
+
+
 def update_drone():
 
     # skip drone update on automatic motion
@@ -205,8 +224,9 @@ def add_to_path():
 
 def go_to_next_pose():
     print("p is pressed")
-    # global automatic_mode
-    # automatic_mode = True
+    global automatic_mode
+    automatic_mode = True
+    v_name = 'Drone0'
 
     # z = -4
     # result = client.moveOnPathAsync([airsim.Vector3r(0,0,z),
@@ -217,7 +237,7 @@ def go_to_next_pose():
     #                                 airsim.DrivetrainType.ForwardOnly, airsim.YawMode(False, 0), 20, 1).join()
 
     result = client.moveOnPathAsync(list_of_vectors,2, 120,
-                                    airsim.DrivetrainType.ForwardOnly, airsim.YawMode(False, 0), -1, 1, vehicle_name='Drone1')
+                                    airsim.DrivetrainType.ForwardOnly, airsim.YawMode(False, 0), -1, 1, vehicle_name=v_name)
 
     print(" p is finished")
 
