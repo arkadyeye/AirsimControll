@@ -4,12 +4,16 @@ this class should interact with air sim,and provide much simplier api to upper c
 
 '''
 import os
+import random
 import time
 
 import airsim
 import math
 
 import json
+
+
+debug_mode = True
 
 # local vars, the state of the drone
 drone_speed = 0
@@ -22,7 +26,7 @@ horizontal_speed = 0
 horizontal_speed_coef = 0.9
 
 camera_heading = 180
-camera_heading_coef = 1.5
+camera_heading_coef = 3.5
 delta_camera_heading = 0
 
 
@@ -32,9 +36,16 @@ prev_image = None
 
 list_of_path = []
 list_of_vectors = []
+list_of_vectors_noised = []
 pose_index = 0
 
 automatic_mode = False
+target_on_path = None
+EPSILON = 1
+target_on_path_index = 0
+
+
+movement_noise = 0.5
 
 
 def init():
@@ -76,7 +87,7 @@ def update_rotation(heading):
     global delta_camera_heading
     global drone_speed
 
-    new_camera_heading = (camera_heading + heading) % 360
+    new_camera_heading = (camera_heading + heading*camera_heading_coef) % 360
 
     # if drone_speed >= 0:
     #     new_camera_heading = (camera_heading + heading) % 360
@@ -159,9 +170,20 @@ def abort_automation():
 
 
 def update_drone():
+    global client
+
+    # not sure that this function call should be here
+    # but it's like in a big update loop
+    update_visible_path()
 
     # skip drone update on automatic motion
     global automatic_mode
+    global target_on_path_index
+    global target_on_path
+
+
+    #we should always track location on path. both in hand and automated mode
+
     if automatic_mode:
         return
 
@@ -169,12 +191,11 @@ def update_drone():
     global horizontal_speed
     global camera_heading
     global drone_speed
-    global client
+
 
     yaw_drone = airsim.to_eularian_angles(client.getMultirotorState().kinematics_estimated.orientation)[2]
     vx = drone_speed * math.cos(yaw_drone) + horizontal_speed * math.sin(yaw_drone)
     vy = drone_speed * math.sin(yaw_drone) + horizontal_speed * -math.cos(yaw_drone)
-
 
     high_drone = client.simGetVehiclePose(vehicle_name="Drone0").position.z_val
     if abs(vertical_position - high_drone) < 0.2:
@@ -192,6 +213,44 @@ def update_drone():
     #     speed = speed - 0.5  # speed should decrease if not activate
     # if speed < 0:
     #     speed = speed + 0.5  # speed should decrease if not activated
+
+
+def update_visible_path():
+    global target_on_path_index
+    global target_on_path
+
+    if len(list_of_vectors) == 0:
+        return
+
+    # track our movement on path
+
+    pose = client.simGetVehiclePose(vehicle_name="Drone0")
+    dist = pose.position.distance_to(target_on_path)
+
+    # print(target_on_path.x_val)
+    if dist < EPSILON and target_on_path_index +1 < len(list_of_vectors):
+        target_on_path_index = target_on_path_index + 1
+        target_on_path = list_of_vectors[target_on_path_index]
+
+
+    #print("dist to target:", dist)
+
+    sublist_of_vectors = list_of_vectors[target_on_path_index:]
+    sublist_of_vectors_noised = list_of_vectors_noised[target_on_path_index:]
+    client.simPlotPoints(points=sublist_of_vectors,
+                         color_rgba=[1.0, 0.0, 0.0, 1.0], size=25, duration=0.5, is_persistent=False)
+
+    client.simPlotLineStrip(
+        points=sublist_of_vectors,
+        color_rgba=[1.0, 1.0, 0.0, 1.0], thickness=5, duration=0.5, is_persistent=False)
+
+    if debug_mode:
+        client.simPlotPoints(points=sublist_of_vectors_noised,
+                             color_rgba=[0.0, 0.0, 1.0, 1.0], size=25, duration=0.1, is_persistent=False)
+
+        client.simPlotLineStrip(
+            points=sublist_of_vectors_noised,
+            color_rgba=[0.0, 0.0, 1.0, 0.0], thickness=5, duration=0.1, is_persistent=False)
 
 
 def get_stage():
@@ -219,12 +278,25 @@ def get_position_vector():
 def add_to_path():
     list_of_path.append(get_position())
     list_of_vectors.append(get_position_vector())
+
+    #this will deleta trace - not good
+    #client.simFlushPersistentMarkers()
+
+    client.simPlotPoints(points=list_of_vectors,
+                         color_rgba=[1.0, 0.0, 0.0, 0.2], size=25, duration=1000, is_persistent=False)
+
+    client.simPlotLineStrip(
+        points=list_of_vectors,
+        color_rgba=[1.0, 1.0, 0.0, 0.02], thickness=5, duration=300.0, is_persistent=False)
+
     print("point added")
 
 
 def go_to_next_pose():
     print("p is pressed")
     global automatic_mode
+    global target_on_path
+    global target_on_path_index
     automatic_mode = True
     v_name = 'Drone0'
 
@@ -235,8 +307,10 @@ def go_to_next_pose():
     #                             airsim.Vector3r(-16,0,z)],
     #                                 1, 120,
     #                                 airsim.DrivetrainType.ForwardOnly, airsim.YawMode(False, 0), 20, 1).join()
+    sublist_of_vectors = list_of_vectors_noised[target_on_path_index:]
 
-    result = client.moveOnPathAsync(list_of_vectors,2, 120,
+    target_on_path = sublist_of_vectors[0]
+    result = client.moveOnPathAsync(sublist_of_vectors,2, 120,
                                     airsim.DrivetrainType.ForwardOnly, airsim.YawMode(False, 0), -1, 1, vehicle_name=v_name)
 
     print(" p is finished")
@@ -276,6 +350,8 @@ def save_path_to_json():
 def load_path_from_json():
     global list_of_path
     global list_of_vectors
+    global list_of_vectors_noised
+    global target_on_path
     with open('movePath.json') as data_file:
         data_loaded = json.load(data_file)
         print("data_loaded", data_loaded)
@@ -283,6 +359,17 @@ def load_path_from_json():
 
     for i in range(len(list_of_path)):
         list_of_vectors.append(airsim.Vector3r(list_of_path[i][0], list_of_path[i][1], list_of_path[i][2]))
+        list_of_vectors_noised.append(airsim.Vector3r(
+            list_of_path[i][0] + round(random.uniform(-movement_noise, movement_noise), 3),
+            list_of_path[i][1] + round(random.uniform(-movement_noise, movement_noise), 3),
+            list_of_path[i][2] + round(random.uniform(-movement_noise, movement_noise), 3),
+        ))
+
+    #clean and redraw path
+    client.simFlushPersistentMarkers()
+    target_on_path = list_of_vectors[0]
+    update_visible_path()
+
 
 # recording
 def start_recording():
