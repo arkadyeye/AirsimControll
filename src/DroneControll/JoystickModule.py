@@ -56,6 +56,31 @@ sim.init()
 
 # -------- Main Program Loop -----------
 while done == False:
+
+    #------------ TODO 19:41 27.11 -------------
+    #   https://github.com/microsoft/AirSim/issues/3348
+    #   simPlotStrings(strings, positions, scale=5, color_rgba=[1.0, 0.0, 0.0, 1.0], duration=-1.0)
+    #   https://github.com/microsoft/AirSim/blob/main/PythonClient/environment/plot_markers.py
+    #   https://microsoft.github.io/AirSim/api_docs/html/#airsim.client.VehicleClient.simPlotStrings
+    #      Psuedo Code Functions:
+    #      filterCollision :
+    #               var temp
+    #               general_count = 0 // Counting the collisions amount
+    #               count_same = 0 // Counting the amount of the collision of the same objects
+    #               temp = vehicle_name // temp is the same as the next collided vehicle
+    #               if temp == vehicle_name
+    #                       count_same = count_same + 1
+    #                       // change the value 2 to the amount you want to hit the same object
+    #                       if count_same == 2 --> general_count = general_count + 1
+    #               else temp = vehicle_name            // make temp as the new vehicle_name
+    #                           general_count = count + 1       // increment general_count
+    #
+    #
+    #       GameOver function idea :
+    #       if general_count == X collisions -> use plot.py in the plot_markers.py above to draw Game Over
+    #                                                  & the drone has to fall to the ground + if can make the screen
+    #                                                               blurry it will be awesome
+    #--------------------------------------------
     # EVENT PROCESSING STEP
     for event in pygame.event.get():  # User did something
         if event.type == pygame.QUIT:  # If user clicked close
