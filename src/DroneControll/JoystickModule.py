@@ -1,5 +1,6 @@
 import pygame
 import AirSimControllerDualStick as sim
+from PathMaker import PathMaker
 
 # Define some colors
 darkgrey = (40, 40, 40)
@@ -57,79 +58,8 @@ sim.init()
 # -------- Main Program Loop -----------
 while done == False:
 
-    #------------ TODO 19:41 27.11 -------------
-    #   https://github.com/microsoft/AirSim/issues/3348
-    #   simPlotStrings(strings, positions, scale=5, color_rgba=[1.0, 0.0, 0.0, 1.0], duration=-1.0)
-    #   https://github.com/microsoft/AirSim/blob/main/PythonClient/environment/plot_markers.py
-    #   https://microsoft.github.io/AirSim/api_docs/html/#airsim.client.VehicleClient.simPlotStrings
-    #      Psuedo Code Functions:
-    #      filterCollision :
-    #               var temp
-    #               general_count = 0 // Counting the collisions amount
-    #               count_same = 0 // Counting the amount of the collision of the same objects
-    #               temp = vehicle_name // temp is the same as the next collided vehicle
-    #               if temp == vehicle_name
-    #                       count_same = count_same + 1
-    #                       // change the value 2 to the amount you want to hit the same object
-    #                       if count_same == 2 --> general_count = general_count + 1
-    #               else temp = vehicle_name            // make temp as the new vehicle_name
-    #                           general_count = count + 1       // increment general_count
-    #
-    #
-    #       GameOver function idea :
-    #       if general_count == X collisions -> use plot.py in the plot_markers.py above to draw Game Over
-    #                                                  & the drone has to fall to the ground + if can make the screen
-    #                                                               blurry it will be awesome
-    #--------------------------------------------
-    # EVENT PROCESSING STEP
-    for event in pygame.event.get():  # User did something
-        if event.type == pygame.QUIT:  # If user clicked close
-            done = True  # Flag that we are done so we exit this loop
-
-        # Possible joystick actions: JOYAXISMOTION JOYBALLMOTION JOYBUTTONDOWN JOYBUTTONUP JOYHATMOTION
-        if event.type == pygame.JOYBUTTONDOWN:
-            print("Joystick button pressed.")
-        if event.type == pygame.JOYBUTTONUP:
-            print("Joystick button released.")
-
-        # checking if keydown event happened or not
-        if event.type == pygame.KEYDOWN:
-            # print ("event.key",event.key)
-
-            if event.key == pygame.K_s:
-                sim.start_recording()
-            if event.key == pygame.K_x:
-                sim.stop_recording()
-
-            # checking if key "J" was pressed
-            if event.key == pygame.K_n:
-                print("Key N has been pressed")
-                sim.scan_map(-920, -1000)
-
-            # checking if key "T" was pressed
-            if event.key == pygame.K_t:
-                print("Key T has been pressed")
-                sim.takeImage(0, 0)
-
-            # p for next point on path
-            if event.key == pygame.K_p:
-                sim.go_to_next_pose()
-
-            # a for adding point to path
-            if event.key == pygame.K_a:
-                sim.add_to_path()
-
-            if event.key == pygame.K_o:
-                sim.save_path_to_json()
-
-            if event.key == pygame.K_l:
-                sim.load_path_from_json()
-
-            if event.key == pygame.K_SPACE:
-                sim.abort_automation()
-
-
-
+    path_maker = PathMaker()
+    path_maker.start_path(pygame, sim)
 
     # DRAWING STEP
     # First, clear the screen to white. Don't put other drawing commands
