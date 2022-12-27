@@ -59,10 +59,12 @@ class YokeController:
         self.drone_controller.add_rotation(value)
 
         # pass speed
-        left_bar_value = (-1 * round(joystick.get_axis(5),2)) + 1
-        depth_value = (-1 * round(joystick.get_axis(1), 2)) + 1
-        speed = left_bar_value * depth_value
-        self.drone_controller.set_speed(speed)
+        left_bar_value = (-1 * round(joystick.get_axis(5),2))
+        # depth_value = (-1 * round(joystick.get_axis(1), 2)) + 1
+        # speed = left_bar_value * depth_value
+        # self.drone_controller.set_speed(speed)
+
+        self.drone_controller.set_speed(left_bar_value*5)
 
         # deal with buttons
 
@@ -72,17 +74,20 @@ class YokeController:
         self.drone_controller.set_horizontal_movement((btn_left + btn_right)*5)
 
         # vertical movement
-        btn_up = joystick.get_button(2) # btn x - up
-        btn_down = joystick.get_button(3)  # btn x - down
-        if btn_up == 1:
-            self.drone_controller.set_vertical_movement(1)
-        if btn_down == 1:
-            self.drone_controller.set_vertical_movement(-1)
-
-        if btn_up == 0 and btn_down == 0:
-            self.drone_controller.set_vertical_movement(0)
+        # btn_up = joystick.get_button(2) # btn x - up
+        # btn_down = joystick.get_button(3)  # btn x - down
+        # if btn_up == 1:
+        #     self.drone_controller.set_vertical_movement(1)
+        # if btn_down == 1:
+        #     self.drone_controller.set_vertical_movement(-1)
+        #
+        # if btn_up == 0 and btn_down == 0:
+        #     self.drone_controller.set_vertical_movement(0)
 
         # self.drone_controller.set_vertical_movement(btn_up+btn_down)
+
+        depth_value = (round(joystick.get_axis(1), 2))*0.1
+        self.drone_controller.set_vertical_movement(depth_value)
 
         '''
         idea by Oded L.M

@@ -4,7 +4,11 @@ from PathMaker import PathMaker
 from AirSimFacade import AirSimFacade
 from YokeController import YokeController
 
+from PIL import Image, ImageDraw
+import matplotlib.pyplot as plt
+
 yoke_joystick = None
+image = None
 
 # Define some colors
 darkgrey = (40, 40, 40)
@@ -37,6 +41,24 @@ class TextPrint:
 
     def unindent(self):
         self.x -= 10
+
+plt.ion()
+img = plt.imread("../full_map.png")
+fig, ax = plt.subplots()
+ax.imshow(img)
+circle = plt.Circle((300, 300), 10, color='r')
+ax.add_patch( circle )
+
+
+
+# setting title
+plt.title("Geeks For Geeks", fontsize=20)
+
+# setting x-axis label and y-axis label
+plt.xlabel("X-axis")
+plt.ylabel("Y-axis")
+
+update_counter = 0
 
 
 pygame.init()
@@ -81,6 +103,8 @@ textPrint = TextPrint()
 
 # -------- Main Program Loop -----------
 while done == False:
+
+    update_counter = update_counter +1
 
     # why the path maker is in the loop !!!!!!!!!!
     path_maker = PathMaker()
@@ -164,6 +188,14 @@ while done == False:
 
         textPrint.print(screen, "--------------------------------")
         pose = sim.get_position()
+
+        # circle = plt.Circle((300+pose[0], 300+pose[1]), 10, color='r')
+        # ax.add_patch( circle )
+        if update_counter%30 == 0:
+            # # drawing updated values
+            circle.center = 300+pose[0], 300+pose[1]
+            fig.canvas.draw()
+            fig.canvas.flush_events()
 
         textPrint.print(screen, "Drone position: [ " + str(pose) + " ]")
 
