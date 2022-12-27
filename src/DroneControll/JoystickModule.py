@@ -1,6 +1,10 @@
 import pygame
-import AirSimControllerDualStick as sim
+#import AirSimControllerDualStick as sim
 from PathMaker import PathMaker
+from AirSimFacade import AirSimFacade
+from YokeController import YokeController
+
+yoke_joystick = None
 
 # Define some colors
 darkgrey = (40, 40, 40)
@@ -11,6 +15,9 @@ lightgrey = (150, 150, 150)
 # It has nothing to do with the joysticks, just outputting the
 # information.
 class TextPrint:
+
+    global yoke_joystick
+
     def __init__(self):
         self.reset()
         self.font = pygame.font.Font(None, 20)
@@ -46,18 +53,36 @@ done = False
 # Used to manage how fast the screen updates
 clock = pygame.time.Clock()
 
+# init airsim
+sim = AirSimFacade("Drone0")
+
 # Initialize the joysticks
 pygame.joystick.init()
+
+# here , check what joystick is connected, and init its class
+joystick_count = pygame.joystick.get_count()
+
+# For each joystick:
+for i in range(joystick_count):
+    joystick = pygame.joystick.Joystick(i)
+    joystick.init()
+    name = joystick.get_name()
+
+    if name == "TCA YOKE BOEING":
+        yoke_joystick = YokeController(sim)
+
+
 
 # Get ready to print
 textPrint = TextPrint()
 
-# init airsim
-sim.init()
+
+#sim.init()
 
 # -------- Main Program Loop -----------
 while done == False:
 
+    # why the path maker is in the loop !!!!!!!!!!
     path_maker = PathMaker()
     path_maker.start_path(pygame, sim)
 
@@ -85,6 +110,10 @@ while done == False:
         name = joystick.get_name()
         textPrint.print(screen, "Joystick name: {}".format(name))
 
+        if (name == "TCA YOKE BOEING"):
+            yoke_joystick.update(joystick)
+
+
         # Usually axis run in pairs, up/down for one, and left/right for
         # the other.
         axes = joystick.get_numaxes()
@@ -93,14 +122,14 @@ while done == False:
 
         for i in range(axes):
             axis = joystick.get_axis(i)
-            if i == 0:  # means X
-                sim.update_rotation(axis)
-            if i == 1: # means Y
-                sim.update_speed(axis)
-            if i == 2:
-                sim.update_horizontal_speed(axis)
-            if i == 3:
-                sim.update_vertical_speed(axis)
+            # if i == 0:  # means X
+            #     sim.add_rotation(axis)
+            # if i == 1: # means Y
+            #     sim.set_speed(axis)
+            # if i == 2:
+            #     sim.set_horizontal_speed(axis)
+            # if i == 3:
+            #     sim.add_vertical_position(axis)
 
             textPrint.print(screen, "Axis {} value: {:>6.0f}".format(i, axis))
         textPrint.unindent()
@@ -118,7 +147,7 @@ while done == False:
             if button == 1:
                 print("button pressed: ", i)  # because buttons numbered from 0 in system, but from 1 on remote
         textPrint.unindent()
-        sim.update_buttons(buttons_list)
+        #sim.update_buttons(buttons_list)
 
         # Hat switch. All or nothing for direction, not like joysticks.
         # Value comes back in an array.
@@ -144,10 +173,14 @@ while done == False:
     pygame.display.flip()
 
     # update drone position
-    sim.update_drone()
+    sim.update_loop()
 
     # Limit to 30 frames per second
     clock.tick(30)
+
+    for event in pygame.event.get():  # User did something
+        if event.type == pygame.QUIT:  # If user clicked close
+            break  # breaks the loop so the gui can be closed
 
 # Close the window and quit.
 # If you forget this line, the program will 'hang'
