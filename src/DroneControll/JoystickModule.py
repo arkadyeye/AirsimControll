@@ -3,12 +3,14 @@ import pygame
 from PathMaker import PathMaker
 from AirSimFacade import AirSimFacade
 from YokeController import YokeController
+from RedWheelController import RedWheelController
 
 from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
 
 yoke_joystick = None
 image = None
+
 
 # Define some colors
 darkgrey = (40, 40, 40)
@@ -93,6 +95,10 @@ for i in range(joystick_count):
     if name == "TCA YOKE BOEING":
         yoke_joystick = YokeController(sim)
 
+    if name == "PS(R) Gamepad Adaptor":
+        red_wheel = RedWheelController(sim)
+
+
 
 
 # Get ready to print
@@ -134,8 +140,11 @@ while done == False:
         name = joystick.get_name()
         textPrint.print(screen, "Joystick name: {}".format(name))
 
-        if (name == "TCA YOKE BOEING"):
+        if name == "TCA YOKE BOEING":
             yoke_joystick.update(joystick)
+
+        if name == "PS(R) Gamepad Adaptor":
+            red_wheel.update(joystick)
 
 
         # Usually axis run in pairs, up/down for one, and left/right for
