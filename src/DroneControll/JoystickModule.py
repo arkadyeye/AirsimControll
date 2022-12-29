@@ -5,10 +5,8 @@ from AirSimFacade import AirSimFacade
 from YokeController import YokeController
 from RedWheelController import RedWheelController
 
-from PIL import Image, ImageDraw
-import matplotlib.pyplot as plt
 
-yoke_joystick = None
+connected_joystick = None
 image = None
 
 
@@ -44,24 +42,6 @@ class TextPrint:
     def unindent(self):
         self.x -= 10
 
-plt.ion()
-img = plt.imread("../full_map.png")
-fig, ax = plt.subplots()
-ax.imshow(img)
-circle = plt.Circle((300, 300), 10, color='r')
-ax.add_patch( circle )
-
-
-
-# setting title
-plt.title("Geeks For Geeks", fontsize=20)
-
-# setting x-axis label and y-axis label
-plt.xlabel("X-axis")
-plt.ylabel("Y-axis")
-
-update_counter = 0
-
 
 pygame.init()
 
@@ -93,10 +73,10 @@ for i in range(joystick_count):
     name = joystick.get_name()
 
     if name == "TCA YOKE BOEING":
-        yoke_joystick = YokeController(sim)
+        connected_joystick = YokeController(sim)
 
     if name == "PS(R) Gamepad Adaptor":
-        red_wheel = RedWheelController(sim)
+        connected_joystick = RedWheelController(sim)
 
 
 
@@ -109,8 +89,6 @@ textPrint = TextPrint()
 
 # -------- Main Program Loop -----------
 while done == False:
-
-    update_counter = update_counter +1
 
     # why the path maker is in the loop !!!!!!!!!!
     path_maker = PathMaker()
@@ -140,11 +118,7 @@ while done == False:
         name = joystick.get_name()
         textPrint.print(screen, "Joystick name: {}".format(name))
 
-        if name == "TCA YOKE BOEING":
-            yoke_joystick.update(joystick)
-
-        if name == "PS(R) Gamepad Adaptor":
-            red_wheel.update(joystick)
+        connected_joystick.update(joystick)
 
 
         # Usually axis run in pairs, up/down for one, and left/right for
@@ -197,14 +171,6 @@ while done == False:
 
         textPrint.print(screen, "--------------------------------")
         pose = sim.get_position()
-
-        # circle = plt.Circle((300+pose[0], 300+pose[1]), 10, color='r')
-        # ax.add_patch( circle )
-        if update_counter%30 == 0:
-            # # drawing updated values
-            circle.center = 300+pose[0], 300+pose[1]
-            fig.canvas.draw()
-            fig.canvas.flush_events()
 
         textPrint.print(screen, "Drone position: [ " + str(pose) + " ]")
 
