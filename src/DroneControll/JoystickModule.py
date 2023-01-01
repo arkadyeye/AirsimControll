@@ -1,6 +1,6 @@
 import pygame
 #import AirSimControllerDualStick as sim
-from PathMaker import PathMaker
+from OperationsFacade import OperationsFacade
 from AirSimFacade import AirSimFacade
 from YokeController import YokeController
 from RedWheelController import RedWheelController
@@ -87,12 +87,34 @@ textPrint = TextPrint()
 
 #sim.init()
 
+
+OperationsFacade = OperationsFacade()
+
+
 # -------- Main Program Loop -----------
 while done == False:
 
+    # for event in pygame.event.get():  # User did something
+    #     if event.type == pygame.QUIT:  # If user clicked close
+    #         break  # breaks the loop so the gui can be closed
+    #
+    #     # checking if keydown event happened or not
+    #     if event.type == pygame.KEYDOWN:
+    #         print ("event.key",event.key)
+    #
+    #         if event.key == pygame.K_1:
+    #             sim.teleportTo(-12, -12, -3, "Get to the palace")
+    #
+    #         # if event.key == pygame.K_s:
+    #         #     sim.start_recording()
+    #         # if event.key == pygame.K_x:
+    #         #     sim.stop_recording()
+
     # why the path maker is in the loop !!!!!!!!!!
-    path_maker = PathMaker()
-    path_maker.start_path(pygame, sim)
+    # ---------------A N S W E R------------------
+    # Has to be here, else would not be able to press buttons,
+    # everything in class was in the current while loop
+    OperationsFacade.start_path(pygame, sim)
 
     # DRAWING STEP
     # First, clear the screen to white. Don't put other drawing commands
@@ -185,9 +207,7 @@ while done == False:
     # Limit to 30 frames per second
     clock.tick(30)
 
-    for event in pygame.event.get():  # User did something
-        if event.type == pygame.QUIT:  # If user clicked close
-            break  # breaks the loop so the gui can be closed
+
 
 # Close the window and quit.
 # If you forget this line, the program will 'hang'

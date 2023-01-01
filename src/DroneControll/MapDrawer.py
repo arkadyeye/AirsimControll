@@ -13,7 +13,7 @@ import matplotlib.image as mpimg
 plt.ion()
 fig, ax = plt.subplots()
 
-plt.imshow(mpimg.imread('bigger_map.png'))
+plt.imshow(mpimg.imread('roads_map.png'))
 circle = plt.Circle((500, 500), 20, color='r')
 ax.add_patch(circle)
 

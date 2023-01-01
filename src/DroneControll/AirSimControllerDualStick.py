@@ -12,7 +12,6 @@ import math
 
 import json
 
-
 debug_mode = True
 
 # local vars, the state of the drone
@@ -29,7 +28,6 @@ camera_heading = 180
 camera_heading_coef = 3.5
 delta_camera_heading = 0
 
-
 client = None
 image_num = 0
 prev_image = None
@@ -43,7 +41,6 @@ automatic_mode = False
 target_on_path = None
 EPSILON = 1
 target_on_path_index = 0
-
 
 movement_noise = 0.5
 
@@ -63,10 +60,8 @@ def init():
 
     client.takeoffAsync(vehicle_name="Drone0").join()  # let Drone0 take-off
     client.moveToPositionAsync(0, 0, -2.5, 1, vehicle_name="Drone0").join()
-    client.rotateToYawAsync(180,vehicle_name="Drone0").join()
-    client.simSetTraceLine([0.0, 1.0, 0.0, 0.8], 10,vehicle_name="Drone0")
-
-
+    client.rotateToYawAsync(180, vehicle_name="Drone0").join()
+    client.simSetTraceLine([0.0, 1.0, 0.0, 0.8], 10, vehicle_name="Drone0")
 
     # client.enableApiControl(True, vehicle_name="Drone1")  # enable API control on Drone0
     # client.armDisarm(True, vehicle_name="Drone1")  # arm Drone0
@@ -87,7 +82,7 @@ def update_rotation(heading):
     global delta_camera_heading
     global drone_speed
 
-    new_camera_heading = (camera_heading + heading*camera_heading_coef) % 360
+    new_camera_heading = (camera_heading + heading * camera_heading_coef) % 360
 
     # if drone_speed >= 0:
     #     new_camera_heading = (camera_heading + heading) % 360
@@ -101,8 +96,9 @@ def update_rotation(heading):
 def update_speed(speed):
     global drone_speed
     drone_speed = -speed * drone_speed_coef
-    drone_speed = round(drone_speed,1)
+    drone_speed = round(drone_speed, 1)
     # print("joystick speed", drone_speed)
+
 
 def update_vertical_speed(speed):
     pass
@@ -111,16 +107,17 @@ def update_vertical_speed(speed):
     # vertical_position = round(vertical_position,1)
     # print("joystick speed", drone_speed)
 
+
 def update_horizontal_speed(speed):
     global horizontal_speed
     horizontal_speed = -speed * drone_speed_coef
-    horizontal_speed = round(horizontal_speed,1)
+    horizontal_speed = round(horizontal_speed, 1)
     # print("joystick speed", drone_speed)
+
 
 def update_buttons(buttons_list):
     global vertical_position
     global horizontal_speed
-
 
     # # horizontal speed is drifrint left/gright
     # if buttons_list[15] == 1:
@@ -168,7 +165,6 @@ def abort_automation():
     automatic_mode = False
 
 
-
 def update_drone():
     global client
 
@@ -181,8 +177,7 @@ def update_drone():
     global target_on_path_index
     global target_on_path
 
-
-    #we should always track location on path. both in hand and automated mode
+    # we should always track location on path. both in hand and automated mode
 
     if automatic_mode:
         return
@@ -191,7 +186,6 @@ def update_drone():
     global horizontal_speed
     global camera_heading
     global drone_speed
-
 
     yaw_drone = airsim.to_eularian_angles(client.getMultirotorState().kinematics_estimated.orientation)[2]
     vx = drone_speed * math.cos(yaw_drone) + horizontal_speed * math.sin(yaw_drone)
@@ -228,12 +222,11 @@ def update_visible_path():
     dist = pose.position.distance_to(target_on_path)
 
     # print(target_on_path.x_val)
-    if dist < EPSILON and target_on_path_index +1 < len(list_of_vectors):
+    if dist < EPSILON and target_on_path_index + 1 < len(list_of_vectors):
         target_on_path_index = target_on_path_index + 1
         target_on_path = list_of_vectors[target_on_path_index]
 
-
-    #print("dist to target:", dist)
+    # print("dist to target:", dist)
 
     sublist_of_vectors = list_of_vectors[target_on_path_index:]
     sublist_of_vectors_noised = list_of_vectors_noised[target_on_path_index:]
@@ -257,39 +250,39 @@ def get_stage():
     return client.getMultirotorState(vehicle_name="Drone0")
 
 
-def get_position():
-    pose = client.simGetVehiclePose(vehicle_name="Drone0")
-    x = round(pose.position.x_val, 3)
-    y = round(pose.position.y_val, 3)
-    z = round(pose.position.z_val, 3)
-    yaw = round(math.degrees(airsim.to_eularian_angles(pose.orientation)[2]), 3)
-    return x, y, z, yaw
+# def get_position():
+#     pose = client.simGetVehiclePose(vehicle_name="Drone0")
+#     x = round(pose.position.x_val, 3)
+#     y = round(pose.position.y_val, 3)
+#     z = round(pose.position.z_val, 3)
+#     yaw = round(math.degrees(airsim.to_eularian_angles(pose.orientation)[2]), 3)
+#     return x, y, z, yaw
 
 
-def get_position_vector():
-    pose = client.simGetVehiclePose(vehicle_name="Drone0")
-    x = round(pose.position.x_val, 3)
-    y = round(pose.position.y_val, 3)
-    z = round(pose.position.z_val, 3)
-    return airsim.Vector3r(x, y, z)
+# def get_position_vector():
+#     pose = client.simGetVehiclePose(vehicle_name="Drone0")
+#     x = round(pose.position.x_val, 3)
+#     y = round(pose.position.y_val, 3)
+#     z = round(pose.position.z_val, 3)
+#     return airsim.Vector3r(x, y, z)
 
 
 # path
-def add_to_path():
-    list_of_path.append(get_position())
-    list_of_vectors.append(get_position_vector())
-
-    #this will deleta trace - not good
-    #client.simFlushPersistentMarkers()
-
-    client.simPlotPoints(points=list_of_vectors,
-                         color_rgba=[1.0, 0.0, 0.0, 0.2], size=25, duration=1000, is_persistent=False)
-
-    client.simPlotLineStrip(
-        points=list_of_vectors,
-        color_rgba=[1.0, 1.0, 0.0, 0.02], thickness=5, duration=300.0, is_persistent=False)
-
-    print("point added")
+# def add_to_path():
+#     list_of_path.append(get_position())
+#     list_of_vectors.append(get_position_vector())
+#
+#     # this will deleta trace - not good
+#     # client.simFlushPersistentMarkers()
+#
+#     client.simPlotPoints(points=list_of_vectors,
+#                          color_rgba=[1.0, 0.0, 0.0, 0.2], size=25, duration=1000, is_persistent=False)
+#
+#     client.simPlotLineStrip(
+#         points=list_of_vectors,
+#         color_rgba=[1.0, 1.0, 0.0, 0.02], thickness=5, duration=300.0, is_persistent=False)
+#
+#     print("point added")
 
 
 def go_to_next_pose():
@@ -310,8 +303,9 @@ def go_to_next_pose():
     sublist_of_vectors = list_of_vectors_noised[target_on_path_index:]
 
     target_on_path = sublist_of_vectors[0]
-    result = client.moveOnPathAsync(sublist_of_vectors,2, 120,
-                                    airsim.DrivetrainType.ForwardOnly, airsim.YawMode(False, 0), -1, 1, vehicle_name=v_name)
+    result = client.moveOnPathAsync(sublist_of_vectors, 2, 120,
+                                    airsim.DrivetrainType.ForwardOnly, airsim.YawMode(False, 0), -1, 1,
+                                    vehicle_name=v_name)
 
     print(" p is finished")
 
@@ -342,9 +336,12 @@ def go_to_next_pose_old():
     client.hoverAsync().join()
 
 
-def save_path_to_json():
-    with open('movePath.json', 'w', encoding='utf-8') as f:
-        json.dump(list_of_path, f, ensure_ascii=False, indent=4)
+# def save_path_to_json():
+#     with open('movePath.json', 'w', encoding='utf-8') as f:
+#         json.dump(list_of_path, f, ensure_ascii=False, indent=4)
+
+
+
 
 
 def load_path_from_json():
@@ -365,7 +362,7 @@ def load_path_from_json():
             list_of_path[i][2] + round(random.uniform(-movement_noise, movement_noise), 3),
         ))
 
-    #clean and redraw path
+    # clean and redraw path
     client.simFlushPersistentMarkers()
     target_on_path = list_of_vectors[0]
     update_visible_path()

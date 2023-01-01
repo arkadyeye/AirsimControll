@@ -12,6 +12,8 @@ class AirSimFacade:
     client = None
     drone_name = "Drone0"
     automatic_mode = False
+    air_sim = airsim
+
 
     # local vars, the state of the drone
     drone_speed = 0
@@ -22,7 +24,7 @@ class AirSimFacade:
 
     def __init__(self, drone_name):
         self.drone_name = drone_name
-        self.client = airsim.MultirotorClient()  # connect to the simulator
+        self.client = self.air_sim.MultirotorClient()  # connect to the simulator
         self.client.confirmConnection()
         self.client.reset()
 
@@ -83,7 +85,7 @@ class AirSimFacade:
         # global camera_heading
         # global drone_speed
 
-        yaw_drone = airsim.to_eularian_angles(self.client.getMultirotorState().kinematics_estimated.orientation)[2]
+        yaw_drone = self.air_sim.to_eularian_angles(self.client.getMultirotorState().kinematics_estimated.orientation)[2]
         vx = self.drone_speed * math.cos(yaw_drone) + self.horizontal_speed * math.sin(yaw_drone)
         vy = self.drone_speed * math.sin(yaw_drone) + self.horizontal_speed * -math.cos(yaw_drone)
 
@@ -96,8 +98,8 @@ class AirSimFacade:
         vy = round(vy, 2)
 
         # if vx > 0.1 or vy > 0.1 or delta_camera_heading != 0 or vertical_position_changed:
-        self.client.moveByVelocityZAsync(vx, vy, self.vertical_position, 1, airsim.DrivetrainType.MaxDegreeOfFreedom,
-                                         airsim.YawMode(False, self.camera_heading), vehicle_name=self.drone_name)
+        self.client.moveByVelocityZAsync(vx, vy, self.vertical_position, 1, self.air_sim.DrivetrainType.MaxDegreeOfFreedom,
+                                         self.air_sim.YawMode(False, self.camera_heading), vehicle_name=self.drone_name)
 
         # if speed > 0:
         #     speed = speed - 0.5  # speed should decrease if not activate
@@ -109,5 +111,21 @@ class AirSimFacade:
         x = round(pose.position.x_val, 3)
         y = round(pose.position.y_val, 3)
         z = round(pose.position.z_val, 3)
-        yaw = round(math.degrees(airsim.to_eularian_angles(pose.orientation)[2]), 3)
+        yaw = round(math.degrees(self.air_sim.to_eularian_angles(pose.orientation)[2]), 3)
         return x, y, z, yaw
+
+    def get_position_vector(self):
+        pose = self.client.simGetVehiclePose(vehicle_name="Drone0")
+        x = round(pose.position.x_val, 3)
+        y = round(pose.position.y_val, 3)
+        z = round(pose.position.z_val, 3)
+        return self.air_sim.Vector3r(x, y, z)
+    def teleportTo(self, x, y, z, text):
+        pose_drone = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
+        yaw = self.air_sim.to_eularian_angles(pose_drone.orientation)[2]
+        # pose = airsim.Pose(airsim.Vector3r(x*math.cos(yaw)*5, y*5*math.sin(yaw), z), airsim.to_quaternion(0, 0, yaw))  # PRY in radians
+        pose = self.air_sim.Pose(self.air_sim.Vector3r(x, y, z),
+                           self.air_sim.to_quaternion(0, 0, yaw))  # PRY in radians
+        self.client.simSetVehiclePose(pose, True)
+        self.client.simPlotStrings(strings=[text], positions=[self.air_sim.Vector3r(x + 1, y, z)],
+                                   scale=10, color_rgba=[1.0, 0.0, 1.0, 1.0], duration=10.0)
