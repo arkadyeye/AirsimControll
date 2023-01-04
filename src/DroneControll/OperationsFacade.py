@@ -3,6 +3,13 @@ import time
 import random
 import easygui
 
+'''
+this class should be devided in game logic, keyboard controller, and path maker
+maybe the path maker and game logic should be the same for now
+
+
+
+'''
 
 debug_mode = True
 movement_noise = 0.5

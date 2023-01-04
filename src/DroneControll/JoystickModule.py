@@ -2,6 +2,7 @@ import pygame
 #import AirSimControllerDualStick as sim
 from OperationsFacade import OperationsFacade
 from AirSimFacade import AirSimFacade
+from GameLogic import GameLogic
 from YokeController import YokeController
 from RedWheelController import RedWheelController
 
@@ -59,6 +60,8 @@ clock = pygame.time.Clock()
 
 # init airsim
 sim = AirSimFacade("Drone0")
+gamelogic = GameLogic(sim)
+gamelogic.load_path_file("SavedPaths\\167258709.json")
 
 # Initialize the joysticks
 pygame.joystick.init()
@@ -195,6 +198,7 @@ while done == False:
         pose = sim.get_position()
 
         textPrint.print(screen, "Drone position: [ " + str(pose) + " ]")
+        gamelogic.update()
 
     # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
 
