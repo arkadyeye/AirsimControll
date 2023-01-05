@@ -5,7 +5,8 @@ from AirSimFacade import AirSimFacade
 from GameLogic import GameLogic
 from YokeController import YokeController
 from RedWheelController import RedWheelController
-
+from HotasXController import HotasXController
+from PathApi import PathApi
 
 connected_joystick = None
 image = None
@@ -61,7 +62,8 @@ clock = pygame.time.Clock()
 # init airsim
 sim = AirSimFacade("Drone0")
 gamelogic = GameLogic(sim)
-gamelogic.load_path_file("SavedPaths\\167290525.json")
+Pathapi = PathApi()
+Pathapi.load_path_file("SavedPaths\\167290525.json", gamelogic)
 
 # Initialize the joysticks
 pygame.joystick.init()
@@ -82,6 +84,9 @@ for i in range(joystick_count):
 
     if name == "PS(R) Gamepad Adaptor":
         connected_joystick = RedWheelController(sim)
+
+    if name == "T.Flight Hotas X":
+        connected_joystick = HotasXController(sim)
 
 
 
@@ -119,7 +124,8 @@ while done == False:
     # ---------------A N S W E R------------------
     # Has to be here, else would not be able to press buttons,
     # everything in class was in the current while loop
-    OperationsFacade.start_path(pygame, sim)
+    OperationsFacade.start_path(pygame, sim, Pathapi, gamelogic)
+
 
     # DRAWING STEP
     # First, clear the screen to white. Don't put other drawing commands
@@ -147,7 +153,7 @@ while done == False:
     for i in range(joystick_count):
         joystick = pygame.joystick.Joystick(i)
         # joystick.init()
-        print("joy "+str(i)+" axis"+str(joystick.get_axis(0)))
+        # print("joy "+str(i)+" axis"+str(joystick.get_axis(0)))
 
         textPrint.print(screen, "Joystick {}".format(i))
         textPrint.indent()

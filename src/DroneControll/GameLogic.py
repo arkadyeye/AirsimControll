@@ -17,7 +17,7 @@ import easygui
 import json
 import airsim
 import random
-
+import time
 
 class GameLogic:
     sim = None
@@ -27,7 +27,7 @@ class GameLogic:
     movement_noise = 0.5
     EPSILON = 1
     target_on_path_index = 0
-    # list_of_path = []
+    list_of_path = []
     list_of_vectors = []
     list_of_vectors_noised = []
 
@@ -41,7 +41,7 @@ class GameLogic:
         # print("game logic pose:", pose)
 
         dist = pose.position.distance_to(self.list_of_vectors[self.target_on_path_index])
-        print("game logic dist:", dist)
+        # print("game logic dist:", dist)
 
         # check if path should be redrawed
         if dist < self.EPSILON and self.target_on_path_index + 1 < len(self.list_of_vectors):
@@ -53,6 +53,7 @@ class GameLogic:
             self.sim.draw_path(sublist_of_vectors)
 
     def load_path_file(self, filename):
+        print("Line 67 called from GameLogic.py")
         # open file dialog
         # path = easygui.fileopenbox()
 

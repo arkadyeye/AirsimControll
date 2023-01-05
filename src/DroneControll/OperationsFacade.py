@@ -2,6 +2,8 @@ import json
 import time
 import random
 import easygui
+from GameLogic import GameLogic
+from src.DroneControll.PathApi import PathApi
 
 '''
 this class should be devided in game logic, keyboard controller, and path maker
@@ -43,7 +45,7 @@ This class controls the path adding:
 
 class OperationsFacade():
 
-    def start_path(self, pygame, sim):
+    def start_path(self, pygame, sim, pathapi, gamelogic):
         # EVENT PROCESSING STEP
         for event in pygame.event.get():  # User did something
             if event.type == pygame.QUIT:  # If user clicked close
@@ -80,34 +82,34 @@ class OperationsFacade():
 
                 # a for adding point to path
                 if event.key == pygame.K_a:
-                    self.add_to_path(sim)
+                    pathapi.add_to_path(gamelogic)
 
                 if event.key == pygame.K_o:
                     print("Path saved as JSON file")
-                    self.save_path_to_json()
+                    pathapi.save_path_to_json()
 
                 if event.key == pygame.K_l:
-                    self.load_path_from_json(sim)
+                    pathapi.load_path_from_json(gamelogic)
 
                 if event.key == pygame.K_SPACE:
                     sim.abort_automation()
 
 
-    def add_to_path(self, sim):
-        list_of_path.append(sim.get_position())
-        list_of_vectors.append(sim.get_position_vector())
-
-        # this will deleta trace - not good
-        # client.simFlushPersistentMarkers()
-
-        sim.client.simPlotPoints(points=list_of_vectors,
-                             color_rgba=[1.0, 0.0, 0.0, 0.2], size=25, duration=1000, is_persistent=False)
-
-        sim.client.simPlotLineStrip(
-            points=list_of_vectors,
-            color_rgba=[1.0, 1.0, 0.0, 0.02], thickness=5, duration=300.0, is_persistent=False)
-
-        print("point added")
+    # def add_to_path(self, sim):
+    #     list_of_path.append(sim.get_position())
+    #     list_of_vectors.append(sim.get_position_vector())
+    #
+    #     # this will deleta trace - not good
+    #     # client.simFlushPersistentMarkers()
+    #
+    #     sim.client.simPlotPoints(points=list_of_vectors,
+    #                          color_rgba=[1.0, 0.0, 0.0, 0.2], size=25, duration=1000, is_persistent=False)
+    #
+    #     sim.client.simPlotLineStrip(
+    #         points=list_of_vectors,
+    #         color_rgba=[1.0, 1.0, 0.0, 0.02], thickness=5, duration=300.0, is_persistent=False)
+    #
+    #     print("point added")
 
     # Saves multipul jsons
     def save_path_to_json(self):
