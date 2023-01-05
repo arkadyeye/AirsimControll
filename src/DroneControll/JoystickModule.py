@@ -61,7 +61,7 @@ clock = pygame.time.Clock()
 # init airsim
 sim = AirSimFacade("Drone0")
 gamelogic = GameLogic(sim)
-gamelogic.load_path_file("SavedPaths\\167258709.json")
+gamelogic.load_path_file("SavedPaths\\167290525.json")
 
 # Initialize the joysticks
 pygame.joystick.init()
@@ -69,11 +69,13 @@ pygame.joystick.init()
 # here , check what joystick is connected, and init its class
 joystick_count = pygame.joystick.get_count()
 
+
 # For each joystick:
 for i in range(joystick_count):
     joystick = pygame.joystick.Joystick(i)
     joystick.init()
     name = joystick.get_name()
+    print ("joystick name",name)
 
     if name == "TCA YOKE BOEING":
         connected_joystick = YokeController(sim)
@@ -131,10 +133,21 @@ while done == False:
     textPrint.print(screen, "Number of joysticks: {}".format(joystick_count))
     textPrint.indent()
 
+    joystick1 = pygame.joystick.Joystick(0)
+    joystick1.init()
+    # print ("joy 1 axis",joystick1.get_axis(0))
+
+    if joystick_count > 1:
+        joystick2 = pygame.joystick.Joystick(1)
+        joystick2.init()
+    # print("joy 2 axis", joystick2.get_axis(0))
+
+
     # For each joystick:
     for i in range(joystick_count):
         joystick = pygame.joystick.Joystick(i)
-        joystick.init()
+        # joystick.init()
+        print("joy "+str(i)+" axis"+str(joystick.get_axis(0)))
 
         textPrint.print(screen, "Joystick {}".format(i))
         textPrint.indent()
@@ -143,7 +156,8 @@ while done == False:
         name = joystick.get_name()
         textPrint.print(screen, "Joystick name: {}".format(name))
 
-        connected_joystick.update(joystick)
+        if name == "TCA YOKE BOEING":
+            connected_joystick.update(joystick)
 
 
         # Usually axis run in pairs, up/down for one, and left/right for
