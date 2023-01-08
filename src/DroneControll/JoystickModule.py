@@ -2,6 +2,7 @@ import pygame
 #import AirSimControllerDualStick as sim
 from OperationsFacade import OperationsFacade
 from AirSimFacade import AirSimFacade
+from AirSimCarFacade import AirSimCarFacade
 from GameLogic import GameLogic
 from YokeController import YokeController
 from RedWheelController import RedWheelController
@@ -61,9 +62,17 @@ clock = pygame.time.Clock()
 
 # init airsim
 sim = AirSimFacade("Drone0")
+#sim = AirSimCarFacade("PhysXCar")
 gamelogic = GameLogic(sim)
 Pathapi = PathApi()
-Pathapi.load_path_file("SavedPaths\\167290525.json", gamelogic)
+# Pathapi.load_path_file("SavedPaths\\167290525.json", gamelogic)
+
+# training path
+#
+Pathapi.load_path_file("SavedPaths\\167299251.json", gamelogic)
+
+# real path
+#Pathapi.load_path_file("SavedPaths\\167299362.json", gamelogic)
 
 # Initialize the joysticks
 pygame.joystick.init()
@@ -87,6 +96,9 @@ for i in range(joystick_count):
 
     if name == "T.Flight Hotas X":
         connected_joystick = HotasXController(sim)
+
+    if name == "Logitech Racing Wheel":
+        connected_joystick = (sim)
 
 
 

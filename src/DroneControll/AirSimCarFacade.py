@@ -8,9 +8,9 @@ import airsim
 import math
 
 
-class AirSimFacade:
+class AirSimCarFacade:
     client = None
-    drone_name = "Drone0"
+    car_name = "PhysXCar"
     automatic_mode = False
     air_sim = airsim
 
@@ -22,15 +22,28 @@ class AirSimFacade:
     camera_heading = 180
 
     def __init__(self, drone_name):
-        self.drone_name = drone_name
-        self.client = self.air_sim.MultirotorClient()  # connect to the simulator
-        self.client.confirmConnection()
-        self.client.reset()
+        self.car_name = drone_name
 
-        self.client.enableApiControl(True, vehicle_name=self.drone_name)  # enable API control on Drone0
-        self.client.armDisarm(True, vehicle_name=self.drone_name)  # arm Drone0
+        client = airsim.CarClient()
+        client.confirmConnection()
+        client.enableApiControl(True)
+        car_controls = airsim.CarControls()
 
-        self.client.takeoffAsync(vehicle_name=self.drone_name).join()  # let Drone0 take-off
+        car_state = client.getCarState()
+        print("Speed %d, Gear %d" % (car_state.speed, car_state.gear))
+
+        car_controls.throttle = 1
+        car_controls.steering = 1
+        client.setCarControls(car_controls)
+
+        # self.client = self.air_sim.MultirotorClient()  # connect to the simulator
+        # self.client.confirmConnection()
+        # self.client.reset()
+        #
+        # self.client.enableApiControl(True, vehicle_name=self.car_name)  # enable API control on Drone0
+        # self.client.armDisarm(True, vehicle_name=self.car_name)  # arm Drone0
+        #
+        # self.client.takeoffAsync(vehicle_name=self.car_name).join()  # let Drone0 take-off
 
         # client.moveToPositionAsync(0, 0, -2.5, 1, vehicle_name=self.drone_name).join()
         # client.rotateToYawAsync(180,vehicle_name=self.drone_name).join()
@@ -51,7 +64,7 @@ class AirSimFacade:
     def set_vertical_movement(self, vertical_increment):
         if vertical_increment == 0:
             # set desired position to current position
-            pose = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
+            pose = self.client.simGetVehiclePose(vehicle_name=self.car_name)
             self.vertical_position = round(pose.position.z_val, 3)
         else:
             self.vertical_position = self.vertical_position - vertical_increment
@@ -65,6 +78,7 @@ class AirSimFacade:
         self.automatic_mode = True
         self.client.landAsync().join()
     def update_loop(self):
+        pass
 
         # global client
 
@@ -103,7 +117,7 @@ class AirSimFacade:
         # if vx > 0.1 or vy > 0.1 or delta_camera_heading != 0 or vertical_position_changed:
         self.client.moveByVelocityZAsync(vx, vy, self.vertical_position, 1,
                                          self.air_sim.DrivetrainType.MaxDegreeOfFreedom,
-                                         self.air_sim.YawMode(False, self.camera_heading), vehicle_name=self.drone_name)
+                                         self.air_sim.YawMode(False, self.camera_heading), vehicle_name=self.car_name)
 
         # if speed > 0:
         #     speed = speed - 0.5  # speed should decrease if not activate
@@ -111,10 +125,10 @@ class AirSimFacade:
         #     speed = speed + 0.5  # speed should decrease if not activated
 
     def get_raw_position(self):
-        return self.client.simGetVehiclePose(vehicle_name=self.drone_name)
+        return self.client.simGetVehiclePose(vehicle_name=self.car_name)
 
     def get_position(self):
-        pose = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
+        pose = self.client.simGetVehiclePose(vehicle_name=self.car_name)
         x = round(pose.position.x_val, 3)
         y = round(pose.position.y_val, 3)
         z = round(pose.position.z_val, 3)
@@ -129,7 +143,7 @@ class AirSimFacade:
         return self.air_sim.Vector3r(x, y, z)
 
     def teleport_to(self, x, y, z, text):
-        pose_drone = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
+        pose_drone = self.client.simGetVehiclePose(vehicle_name=self.car_name)
         yaw = self.air_sim.to_eularian_angles(pose_drone.orientation)[2]
         # pose = airsim.Pose(airsim.Vector3r(x*math.cos(yaw)*5, y*5*math.sin(yaw), z), airsim.to_quaternion(0, 0, yaw))  # PRY in radians
         pose = self.air_sim.Pose(self.air_sim.Vector3r(x, y, z),

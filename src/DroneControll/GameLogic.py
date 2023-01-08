@@ -25,13 +25,17 @@ class GameLogic:
     # path movement logic
     debug_mode = True
     movement_noise = 0.5
-    EPSILON = 1
+    EPSILON = 2
     target_on_path_index = 0
     list_of_path = []
     list_of_vectors = []
     list_of_vectors_noised = []
 
     path_loaded = False
+
+    time_started = 0
+    time_finished = 0
+    is_time_started = False
 
     def __init__(self, sim):
         self.sim = sim
@@ -40,8 +44,14 @@ class GameLogic:
         pose = self.sim.get_raw_position()
         # print("game logic pose:", pose)
 
+        if self.is_time_started == False and (pose.position.x_val != 0 or pose.position.y_val != 0):
+            self.time_started = time.time()
+            self.is_time_started = True
+            print ("time started")
+
         dist = pose.position.distance_to(self.list_of_vectors[self.target_on_path_index])
         # print("game logic dist:", dist)
+
 
         # check if path should be redrawed
         if dist < self.EPSILON and self.target_on_path_index + 1 < len(self.list_of_vectors):
@@ -49,8 +59,15 @@ class GameLogic:
             self.target_on_path_index = self.target_on_path_index + 1
 
             # calculate new, shorted, path
-            sublist_of_vectors = self.list_of_vectors[self.target_on_path_index:]
+            sublist_of_vectors = self.list_of_vectors[self.target_on_path_index:self.target_on_path_index + 3]
             self.sim.draw_path(sublist_of_vectors)
+
+            # check if experement ended
+            if len(sublist_of_vectors) <= 1:
+                self.sim.land()
+                self.time_finished = time.time()
+
+                print ("delta time: "+str(self.time_finished - self.time_started))
 
     def load_path_file(self, filename):
         print("Line 67 called from GameLogic.py")

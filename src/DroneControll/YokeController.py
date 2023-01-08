@@ -59,19 +59,20 @@ class YokeController:
         self.drone_controller.add_rotation(value)
 
         # pass speed
-        left_bar_value = (-1 * round(joystick.get_axis(5),2))
+        right_hand_joystick_vertical = (round(joystick.get_axis(4),2))
         # depth_value = (-1 * round(joystick.get_axis(1), 2)) + 1
         # speed = left_bar_value * depth_value
         # self.drone_controller.set_speed(speed)
 
-        self.drone_controller.set_speed(left_bar_value*5)
+        self.drone_controller.set_speed(right_hand_joystick_vertical*7.5)
 
         # deal with buttons
 
         # horizontal movement
-        btn_left = joystick.get_button(6)
-        btn_right = -1* joystick.get_button(7)
-        self.drone_controller.set_horizontal_movement((btn_left + btn_right)*5)
+        # btn_left = joystick.get_button(6)
+        # btn_right = -1* joystick.get_button(7)
+        right_hand_joystick_horizontal = (-1 * round(joystick.get_axis(3), 2))
+        self.drone_controller.set_horizontal_movement(right_hand_joystick_horizontal*4)
 
         # vertical movement
         # btn_up = joystick.get_button(2) # btn x - up

@@ -13,9 +13,9 @@ import matplotlib.image as mpimg
 plt.ion()
 fig, ax = plt.subplots()
 
-plt.imshow(mpimg.imread('roads_map.png'))
-circle = plt.Circle((500, 500), 20, color='r')
-ax.add_patch(circle)
+plt.imshow(mpimg.imread('../1000_map.png'))
+circle = plt.Circle((500, 500), 5, color='r')
+#ax.add_patch(circle)
 
 drone_name = "Drone0"
 client = airsim.MultirotorClient()  # connect to the simulator
@@ -28,7 +28,12 @@ while True:
     print("px",px)
     print("py",py)
 
-    circle.center = 500 + (px*500/124), 500 + (py*500/124)
+    ppx = 500 + px*500/127
+    ppy = 500 + py*500/127
+
+    #circle.center = (500 + px*100, 500 + py*100)
+    circle = plt.Circle((ppx, ppy), 10, color='r')
+    ax.add_patch(circle)
     fig.canvas.draw()
     fig.canvas.flush_events()
-    plt.pause(0.1)
+    plt.pause(0.5)

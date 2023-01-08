@@ -8,15 +8,17 @@ from src.DroneControll.GameLogic import GameLogic
 
 
 class PathApi:
-
+    list_of_path = []
     def save_path_to_json(self):
         # with open('movePath.json', 'w', encoding='utf-8') as f:
         #     json.dump(list_of_path, f, ensure_ascii=False, indent=4)
 
+        print (self.list_of_path)
+
         ts = time.time()
         str_timestamp = str(ts)
         with open("SavedPaths/" + str_timestamp[0:9] + ".json", 'w', encoding='utf-8') as f:
-            json.dump(GameLogic.list_of_path, f)
+            json.dump(self.list_of_path, f, ensure_ascii=False, indent=4)
 
     def load_path_file(self, filename, game_logic):
         print("Line 67 called from GameLogic.py")
@@ -48,11 +50,13 @@ class PathApi:
         game_logic.sim.draw_path(game_logic.list_of_vectors)
 
     def add_to_path(self, game_logic):
-        game_logic.list_of_path.append(game_logic.sim.get_position())
-        game_logic.list_of_vectors.append(game_logic.sim.get_position_vector())
+        #game_logic.list_of_path.append(game_logic.sim.get_position())
+        #game_logic.list_of_vectors.append(game_logic.sim.get_position_vector())
 
         # this will deleta trace - not good
         # client.simFlushPersistentMarkers()
+
+        self.list_of_path.append(game_logic.sim.get_position())
 
         game_logic.sim.client.simPlotPoints(points=game_logic.list_of_vectors,
                                  color_rgba=[1.0, 0.0, 0.0, 0.2], size=25, duration=1000, is_persistent=False)
