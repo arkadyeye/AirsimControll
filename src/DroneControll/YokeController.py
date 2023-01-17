@@ -45,26 +45,43 @@ right hand switch = 17 (up = 1)
 
 class YokeController:
     drone_controller = None
+    joystick_name = "TCA YOKE BOEING"
+    speed_activated = False
+    vertical_speed_activated = False
+    horizontal_speed_activated = False
+
 
     def __init__(self,  drone_controller):
         print ("yoke created")
         self.drone_controller = drone_controller
 
-    def update(self,joystick):
+    def update(self, joystick):
+
+        if self.joystick_name != joystick.get_name():
+            return
 
         # deal with axis
 
         # pass yaw
         value = joystick.get_axis(0)
-        self.drone_controller.add_rotation(value)
+        if round(value, 1) != 0:
+            self.drone_controller.add_rotation(value)
+
 
         # pass speed
-        right_hand_joystick_vertical = (round(joystick.get_axis(4),2))
-        # depth_value = (-1 * round(joystick.get_axis(1), 2)) + 1
-        # speed = left_bar_value * depth_value
-        # self.drone_controller.set_speed(speed)
 
-        self.drone_controller.set_speed(right_hand_joystick_vertical*7.5)
+        right_hand_joystick_vertical = (round(joystick.get_axis(4), 2))
+        if round(right_hand_joystick_vertical, 1) != 0:
+            # depth_value = (-1 * round(joystick.get_axis(1), 2)) + 1
+            # speed = left_bar_value * depth_value
+            # self.drone_controller.set_speed(speed)
+
+            self.speed_activated = True
+            self.drone_controller.set_speed(right_hand_joystick_vertical*7.5)
+        else:
+            if self.speed_activated:
+                self.drone_controller.set_speed(0)
+                self.speed_activated = False
 
         # deal with buttons
 
@@ -72,7 +89,13 @@ class YokeController:
         # btn_left = joystick.get_button(6)
         # btn_right = -1* joystick.get_button(7)
         right_hand_joystick_horizontal = (-1 * round(joystick.get_axis(3), 2))
-        self.drone_controller.set_horizontal_movement(right_hand_joystick_horizontal*4)
+        if round(right_hand_joystick_horizontal, 1) != 0:
+            self.drone_controller.set_horizontal_movement(right_hand_joystick_horizontal*4)
+            self.horizontal_speed_activated = True
+        else:
+            if self.horizontal_speed_activated:
+                self.drone_controller.set_horizontal_movement(right_hand_joystick_horizontal * 4)
+                self.horizontal_speed_activated = False;
 
         # vertical movement
         # btn_up = joystick.get_button(2) # btn x - up
@@ -88,7 +111,13 @@ class YokeController:
         # self.drone_controller.set_vertical_movement(btn_up+btn_down)
 
         depth_value = (round(joystick.get_axis(1), 2))*0.1
-        self.drone_controller.set_vertical_movement(depth_value)
+        if round(depth_value, 1) != 0:
+            self.drone_controller.set_vertical_movement(depth_value)
+            self.vertical_speed_activated = True
+        else:
+            if self.vertical_speed_activated:
+                self.drone_controller.set_vertical_movement(0)
+                self.vertical_speed_activated = False
 
         '''
         idea by Oded L.M

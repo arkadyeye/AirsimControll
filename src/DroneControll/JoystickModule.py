@@ -8,6 +8,7 @@ from YokeController import YokeController
 from RedWheelController import RedWheelController
 from HotasXController import HotasXController
 from PathApi import PathApi
+from LogitechRacingController import LogitechRacingController
 
 connected_joystick = None
 image = None
@@ -63,16 +64,16 @@ clock = pygame.time.Clock()
 # init airsim
 sim = AirSimFacade("Drone0")
 #sim = AirSimCarFacade("PhysXCar")
-gamelogic = GameLogic(sim)
-Pathapi = PathApi()
+gameLogic = GameLogic(sim)
+pathApi = PathApi()
 # Pathapi.load_path_file("SavedPaths\\167290525.json", gamelogic)
 
 # training path
 #
-Pathapi.load_path_file("SavedPaths\\167299251.json", gamelogic)
+#Pathapi.load_path_file("SavedPaths\\167299251.json", gamelogic)
 
 # real path
-#Pathapi.load_path_file("SavedPaths\\167299362.json", gamelogic)
+pathApi.load_path_file("SavedPaths\\167299362.json", gameLogic)
 
 # Initialize the joysticks
 pygame.joystick.init()
@@ -80,25 +81,25 @@ pygame.joystick.init()
 # here , check what joystick is connected, and init its class
 joystick_count = pygame.joystick.get_count()
 
-
+joysticks_list = []
 # For each joystick:
 for i in range(joystick_count):
     joystick = pygame.joystick.Joystick(i)
     joystick.init()
     name = joystick.get_name()
-    print ("joystick name",name)
+    print("joystick name", name)
 
     if name == "TCA YOKE BOEING":
-        connected_joystick = YokeController(sim)
+        joysticks_list.append(YokeController(sim))
 
     if name == "PS(R) Gamepad Adaptor":
-        connected_joystick = RedWheelController(sim)
+        joysticks_list.append(RedWheelController(sim))
 
     if name == "T.Flight Hotas X":
-        connected_joystick = HotasXController(sim)
+        joysticks_list.append(HotasXController(sim))
 
     if name == "Logitech Racing Wheel":
-        connected_joystick = (sim)
+        joysticks_list.append(LogitechRacingController(sim))
 
 
 
@@ -136,7 +137,7 @@ while done == False:
     # ---------------A N S W E R------------------
     # Has to be here, else would not be able to press buttons,
     # everything in class was in the current while loop
-    OperationsFacade.start_path(pygame, sim, Pathapi, gamelogic)
+    OperationsFacade.start_path(pygame, sim, pathApi, gameLogic)
 
 
     # DRAWING STEP
@@ -151,6 +152,8 @@ while done == False:
     textPrint.print(screen, "Number of joysticks: {}".format(joystick_count))
     textPrint.indent()
 
+    # for i in range(joystick_count):
+
     joystick1 = pygame.joystick.Joystick(0)
     joystick1.init()
     # print ("joy 1 axis",joystick1.get_axis(0))
@@ -159,6 +162,7 @@ while done == False:
         joystick2 = pygame.joystick.Joystick(1)
         joystick2.init()
     # print("joy 2 axis", joystick2.get_axis(0))
+
 
 
     # For each joystick:
@@ -174,8 +178,9 @@ while done == False:
         name = joystick.get_name()
         textPrint.print(screen, "Joystick name: {}".format(name))
 
-        if name == "TCA YOKE BOEING":
-            connected_joystick.update(joystick)
+        # if name == "TCA YOKE BOEING":
+        for j in range(len(joysticks_list)):
+            joysticks_list[j].update(joystick)
 
 
         # Usually axis run in pairs, up/down for one, and left/right for
@@ -230,7 +235,7 @@ while done == False:
         pose = sim.get_position()
 
         textPrint.print(screen, "Drone position: [ " + str(pose) + " ]")
-        gamelogic.update()
+        gameLogic.update()
 
     # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
 
