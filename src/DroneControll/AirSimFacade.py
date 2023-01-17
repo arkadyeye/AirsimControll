@@ -150,3 +150,10 @@ class AirSimFacade:
 
         self.client.simPlotLineStrip(points=sublist_of_vectors,
                                      color_rgba=[1.0, 1.0, 0.0, 1.0], thickness=5, duration=-1, is_persistent=True)
+
+# recording
+    def start_recording(self):
+        self.client.startRecording()
+
+    def stop_recording(self):
+        self.client.stopRecording()

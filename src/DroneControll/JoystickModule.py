@@ -10,6 +10,10 @@ from HotasXController import HotasXController
 from PathApi import PathApi
 from LogitechRacingController import LogitechRacingController
 
+from Logger import PostAnalyser
+
+import time
+
 connected_joystick = None
 image = None
 
@@ -70,10 +74,10 @@ pathApi = PathApi()
 
 # training path
 #
-#Pathapi.load_path_file("SavedPaths\\167299251.json", gamelogic)
+pathApi.load_path_file("SavedPaths\\167299251.json", gameLogic)
 
 # real path
-pathApi.load_path_file("SavedPaths\\167299362.json", gameLogic)
+#pathApi.load_path_file("SavedPaths\\167299362.json", gameLogic)
 
 # Initialize the joysticks
 pygame.joystick.init()
@@ -113,9 +117,16 @@ textPrint = TextPrint()
 
 OperationsFacade = OperationsFacade()
 
+#init results analyzer
+pa = PostAnalyser("Ark")
+
 
 # -------- Main Program Loop -----------
+time_a = 0
+time_b = 0
 while done == False:
+
+    time_a = time.time()
 
     # for event in pygame.event.get():  # User did something
     #     if event.type == pygame.QUIT:  # If user clicked close
@@ -236,6 +247,7 @@ while done == False:
 
         textPrint.print(screen, "Drone position: [ " + str(pose) + " ]")
         gameLogic.update()
+        pa.addPose(pose)
 
     # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
 
@@ -245,12 +257,17 @@ while done == False:
     # update drone position
     sim.update_loop()
 
+    time_b = time.time()
+    delta_time = round((time_b - time_a)*1000)
+    print ("loop_time: "+str(delta_time) + " ms")
+
     # Limit to 30 frames per second
     clock.tick(30)
 
 
 
 # Close the window and quit.
+pa.close()
 # If you forget this line, the program will 'hang'
 # on exit if running from IDLE.
 pygame.quit()
