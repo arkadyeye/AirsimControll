@@ -45,6 +45,10 @@ class AirSimFacade:
         self.drone_speed = speed
         self.drone_speed = round(self.drone_speed, 1)
 
+    def add_speed(self, speed):
+        self.drone_speed += speed
+        self.drone_speed = round(self.drone_speed, 1)
+
     def set_horizontal_movement(self, speed):
         self.horizontal_speed = round(speed, 1)
 
@@ -62,8 +66,21 @@ class AirSimFacade:
             self.vertical_position = 1
 
     def land(self):
+
+
         self.automatic_mode = True
+
+        self.drone_speed = 0
+        self.vertical_position = 0
+        self.horizontal_speed = 0
+
         self.client.landAsync().join()
+
+    def restart_training(self):
+        pose = airsim.Pose(airsim.Vector3r(0, 0, -2), airsim.to_quaternion(0, 0, 0))  # PRY in radians
+        self.client.simSetVehiclePose(pose, True)
+        self.automatic_mode = False
+
     def update_loop(self):
 
         # global client
@@ -150,6 +167,9 @@ class AirSimFacade:
 
         self.client.simPlotLineStrip(points=sublist_of_vectors,
                                      color_rgba=[1.0, 1.0, 0.0, 1.0], thickness=5, duration=-1, is_persistent=True)
+
+    def flush_persistent_markers(self):
+        self.client.simFlushPersistentMarkers()
 
 # recording
     def start_recording(self):

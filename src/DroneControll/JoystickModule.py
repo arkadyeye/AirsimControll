@@ -74,7 +74,7 @@ pathApi = PathApi()
 
 # training path
 #
-pathApi.load_path_file("SavedPaths\\167299251.json", gameLogic)
+#pathApi.load_path_file("SavedPaths\\167299251.json", gameLogic)
 
 # real path
 #pathApi.load_path_file("SavedPaths\\167299362.json", gameLogic)
@@ -259,7 +259,8 @@ while done == False:
 
     time_b = time.time()
     delta_time = round((time_b - time_a)*1000)
-    print ("loop_time: "+str(delta_time) + " ms")
+    if delta_time > 20:
+        print ("loop_time: "+str(delta_time) + " ms")
 
     # Limit to 30 frames per second
     clock.tick(30)

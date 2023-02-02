@@ -1,10 +1,7 @@
 import json
 import time
 import random
-import easygui
 import airsim
-
-from src.DroneControll.GameLogic import GameLogic
 
 
 class PathApi:
@@ -49,6 +46,8 @@ class PathApi:
         # load path to world
         game_logic.sim.draw_path(game_logic.list_of_vectors)
 
+        game_logic.is_path_loaded = True
+
     def add_to_path(self, game_logic):
         #game_logic.list_of_path.append(game_logic.sim.get_position())
         #game_logic.list_of_vectors.append(game_logic.sim.get_position_vector())
@@ -58,11 +57,11 @@ class PathApi:
 
         self.list_of_path.append(game_logic.sim.get_position())
 
-        game_logic.sim.client.simPlotPoints(points=game_logic.list_of_vectors,
-                                 color_rgba=[1.0, 0.0, 0.0, 0.2], size=25, duration=1000, is_persistent=False)
-
-        game_logic.sim.client.simPlotLineStrip(
-            points=game_logic.list_of_vectors,
-            color_rgba=[1.0, 1.0, 0.0, 0.02], thickness=5, duration=300.0, is_persistent=False)
+        # game_logic.sim.client.simPlotPoints(points=game_logic.list_of_vectors,
+        #                          color_rgba=[1.0, 0.0, 0.0, 0.2], size=25, duration=1000, is_persistent=False)
+        #
+        # game_logic.sim.client.simPlotLineStrip(
+        #     points=game_logic.list_of_vectors,
+        #     color_rgba=[1.0, 1.0, 0.0, 0.02], thickness=5, duration=300.0, is_persistent=False)
 
         print("point added")

@@ -2,8 +2,9 @@ import json
 import time
 import random
 import easygui
-from GameLogic import GameLogic
-from src.DroneControll.PathApi import PathApi
+
+import GameLogic
+
 
 '''
 this class should be devided in game logic, keyboard controller, and path maker
@@ -66,10 +67,14 @@ class OperationsFacade():
                 if event.key == pygame.K_x:
                     sim.stop_recording()
 
-                # checking if key "J" was pressed
+                # checking if key "N" was pressed
                 if event.key == pygame.K_n:
                     print("Key N has been pressed")
-                    sim.scan_map(-920, -1000)
+                    user_name = easygui.enterbox("What, is your ID?","New Experiment setup")
+                    print ("user name is:" ,user_name)
+                    gamelogic.start_game(user_name)
+                    # here we should load the easypath. or maybe call to
+                    # some experiment controller.start()
 
                 # checking if key "T" was pressed
                 if event.key == pygame.K_t:

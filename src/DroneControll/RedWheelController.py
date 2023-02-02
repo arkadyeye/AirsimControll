@@ -25,7 +25,7 @@ btn 4 -
 
 class RedWheelController:
     drone_controller = None
-    speed = 0
+
 
     def __init__(self, drone_controller):
         print("Red Wheel created")
@@ -45,8 +45,8 @@ class RedWheelController:
         btn_speed_up = joystick.get_button(2)
         btn_speed_down = -1 * joystick.get_button(3)
 
-        self.speed = self.speed + (btn_speed_up + btn_speed_down)
-        self.drone_controller.set_speed(self.speed)
+        speed = 0.25 * (btn_speed_up + btn_speed_down)
+        self.drone_controller.add_speed(speed)
 
         # horizontal movement
         btn_left = joystick.get_button(15)
@@ -65,3 +65,4 @@ class RedWheelController:
             self.drone_controller.set_vertical_movement(0)
 
         # self.drone_controller.set_vertical_movement(btn_up+btn_down)
+

@@ -18,8 +18,18 @@ import json
 import airsim
 import random
 import time
+import PathApi
+
 
 class GameLogic:
+    # shoul not be changed. game Modes
+    STAGE_NOT_IN_GAME = "not_in_game"
+    STAGE_TRAINING = "training"
+    STAGE_MAIN_PATH = "main"
+    # STAGE_FINISHED = "finished"
+
+    game_stage = STAGE_NOT_IN_GAME
+
     sim = None
 
     # path movement logic
@@ -37,23 +47,69 @@ class GameLogic:
     time_finished = 0
     is_time_started = False
 
+    is_path_loaded = False
+
     def __init__(self, sim):
         self.sim = sim
 
-    def update(self):
-        pose = self.sim.get_raw_position()
-        # print("game logic pose:", pose)
+    def start_game(self, user_name):
+        if self.game_stage == self.STAGE_NOT_IN_GAME:
+            self.sim.flush_persistent_markers()
+            self.load_path_file("SavedPaths\\short_path.json")
+            self.game_stage = self.STAGE_TRAINING
+            self.sim.restart_training()
 
+    def finish_path(self):
+        self.sim.land()
+        self.sim.flush_persistent_markers()
+        self.time_finished = time.time()
+        delta_time = str(self.time_finished - self.time_started)
+
+        # this should be exported to some pdf
+        print("delta time: " + delta_time)
+
+        if self.game_stage == self.STAGE_TRAINING:
+            self.sim.flush_persistent_markers()
+
+            # finishe training, and load real path
+            easygui.msgbox("Yo have finished the Training\n Ready to start the real thing ?", "Path completed")
+
+            self.load_path_file("SavedPaths\\long_path.json")
+            self.game_stage = self.STAGE_MAIN_PATH
+            self.sim.restart_training()
+
+            return
+
+            # tut nado dron peremestit v nachalnuu positziu
+            # i zagruzit'noviy path'
+
+        if self.game_stage == self.STAGE_MAIN_PATH:
+            # finishe the game
+            self.game_stage = self.STAGE_NOT_IN_GAME
+            easygui.msgbox("Yo have completed the assignment in: " + delta_time + "\n Hurray !", "Path completed")
+
+    def update(self):
+
+        # if we are not in game, just return
+        if self.game_stage == self.STAGE_NOT_IN_GAME:
+            return
+
+        # here we are running on training/main path
+        if not self.is_path_loaded:
+            print("ERROR, no path loaded, but expected to be")
+            return
+
+        # get drone position
+        pose = self.sim.get_raw_position()
+
+        # check if movement started
         if self.is_time_started == False and (pose.position.x_val != 0 or pose.position.y_val != 0):
             self.time_started = time.time()
             self.is_time_started = True
-            print ("time started")
+            print("time started")
 
+        # update path drawing
         dist = pose.position.distance_to(self.list_of_vectors[self.target_on_path_index])
-        # print("game logic dist:", dist)
-
-
-        # check if path should be redrawed
         if dist < self.EPSILON and self.target_on_path_index + 1 < len(self.list_of_vectors):
             # increment node on path index
             self.target_on_path_index = self.target_on_path_index + 1
@@ -62,12 +118,9 @@ class GameLogic:
             sublist_of_vectors = self.list_of_vectors[self.target_on_path_index:self.target_on_path_index + 3]
             self.sim.draw_path(sublist_of_vectors)
 
-            # check if experement ended
+            # check if experiment ended
             if len(sublist_of_vectors) <= 1:
-                self.sim.land()
-                self.time_finished = time.time()
-
-                print ("delta time: "+str(self.time_finished - self.time_started))
+                self.finish_path()
 
     def load_path_file(self, filename):
         print("Line 67 called from GameLogic.py")
@@ -97,3 +150,6 @@ class GameLogic:
 
         # load path to world
         self.sim.draw_path(self.list_of_vectors)
+
+        # set loaded flag
+        self.is_path_loaded = True
