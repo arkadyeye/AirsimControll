@@ -10,7 +10,7 @@ from HotasXController import HotasXController
 from PathApi import PathApi
 from LogitechRacingController import LogitechRacingController
 
-from Logger import PostAnalyser
+
 
 import time
 
@@ -118,7 +118,7 @@ textPrint = TextPrint()
 OperationsFacade = OperationsFacade()
 
 #init results analyzer
-pa = PostAnalyser("Ark")
+
 
 
 # -------- Main Program Loop -----------
@@ -247,7 +247,7 @@ while done == False:
 
         textPrint.print(screen, "Drone position: [ " + str(pose) + " ]")
         gameLogic.update()
-        pa.addPose(pose)
+
 
     # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
 
@@ -268,7 +268,7 @@ while done == False:
 
 
 # Close the window and quit.
-pa.close()
+
 # If you forget this line, the program will 'hang'
 # on exit if running from IDLE.
 pygame.quit()

@@ -29,7 +29,7 @@ class PostAnalyser:
     def close(self):
         self.csv_file.close()
 
-    def addPose(self, position):
+    def add_pose(self, position):
         data_line = str(round(time.time()*1000))+","+str(position[0])+","+str(position[1])+","+str(position[2])+","+str(position[3])+"\n"
         self.csv_file.write(data_line)
 

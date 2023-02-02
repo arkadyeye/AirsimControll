@@ -20,6 +20,8 @@ import random
 import time
 import PathApi
 
+from Logger import PostAnalyser
+
 
 class GameLogic:
     # shoul not be changed. game Modes
@@ -49,11 +51,16 @@ class GameLogic:
 
     is_path_loaded = False
 
+    pa = None
+    user_name = ""
+
     def __init__(self, sim):
         self.sim = sim
 
     def start_game(self, user_name):
         if self.game_stage == self.STAGE_NOT_IN_GAME:
+            self.user_name = user_name
+            self.pa = PostAnalyser(user_name + "_training")
             self.sim.flush_persistent_markers()
             self.load_path_file("SavedPaths\\short_path.json")
             self.game_stage = self.STAGE_TRAINING
@@ -64,28 +71,30 @@ class GameLogic:
         self.sim.flush_persistent_markers()
         self.time_finished = time.time()
         delta_time = str(self.time_finished - self.time_started)
+        self.is_time_started = False
+
 
         # this should be exported to some pdf
         print("delta time: " + delta_time)
 
         if self.game_stage == self.STAGE_TRAINING:
             self.sim.flush_persistent_markers()
+            self.pa.close()
 
             # finishe training, and load real path
             easygui.msgbox("Yo have finished the Training\n Ready to start the real thing ?", "Path completed")
 
             self.load_path_file("SavedPaths\\long_path.json")
+            self.pa = PostAnalyser(self.user_name + "_real")
             self.game_stage = self.STAGE_MAIN_PATH
             self.sim.restart_training()
 
             return
 
-            # tut nado dron peremestit v nachalnuu positziu
-            # i zagruzit'noviy path'
-
         if self.game_stage == self.STAGE_MAIN_PATH:
             # finishe the game
             self.game_stage = self.STAGE_NOT_IN_GAME
+            self.pa.close()
             easygui.msgbox("Yo have completed the assignment in: " + delta_time + "\n Hurray !", "Path completed")
 
     def update(self):
@@ -109,6 +118,12 @@ class GameLogic:
             print("time started")
 
         # update path drawing
+        if not self.is_time_started:
+            return
+
+        #update performance analyzer
+        self.pa.add_pose(self.sim.get_position_by_pose(pose))
+
         dist = pose.position.distance_to(self.list_of_vectors[self.target_on_path_index])
         if dist < self.EPSILON and self.target_on_path_index + 1 < len(self.list_of_vectors):
             # increment node on path index

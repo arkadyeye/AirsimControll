@@ -77,7 +77,7 @@ class AirSimFacade:
         self.client.landAsync().join()
 
     def restart_training(self):
-        pose = airsim.Pose(airsim.Vector3r(0, 0, -2), airsim.to_quaternion(0, 0, 0))  # PRY in radians
+        pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(0, 0, 0))  # PRY in radians
         self.client.simSetVehiclePose(pose, True)
         self.automatic_mode = False
 
@@ -138,6 +138,12 @@ class AirSimFacade:
         yaw = round(math.degrees(self.air_sim.to_eularian_angles(pose.orientation)[2]), 3)
         return x, y, z, yaw
 
+    def get_position_by_pose(self,pose):
+        x = round(pose.position.x_val, 3)
+        y = round(pose.position.y_val, 3)
+        z = round(pose.position.z_val, 3)
+        yaw = round(math.degrees(self.air_sim.to_eularian_angles(pose.orientation)[2]), 3)
+        return x, y, z, yaw
     def get_position_vector(self):
         pose = self.client.simGetVehiclePose(vehicle_name="Drone0")
         x = round(pose.position.x_val, 3)
