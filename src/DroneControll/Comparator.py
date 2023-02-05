@@ -19,7 +19,7 @@ import similaritymeasures
 import matplotlib.pyplot as plt
 # open file in read mode
 counter = 0
-with open('D:\\Git\\AirsimControll\\2023_02_02_14_25_26_Ark_try_2_real\\path.csv', 'r') as read_obj:
+with open('D:\\Git\\AirsimControll\\2023_02_05_11_43_47_Ohad_real\\path.csv', 'r') as read_obj:
     # pass the file object to reader() to get the reader object
     csv_reader = reader(read_obj)
     header = next(csv_reader)
@@ -44,7 +44,7 @@ a_x = []
 a_y = []
 a_z = []
 counter = 0
-with open('D:\\Git\\AirsimControll\\2023_02_02_14_22_37_Ark_try_1_real\\path.csv', 'r') as read_obj:
+with open('D:\\Git\\AirsimControll\\2023_02_05_11_42_51_Ohad_training\\path.csv', 'r') as read_obj:
     # pass the file object to reader() to get the reader object
     csv_reader = reader(read_obj)
     header = next(csv_reader)
@@ -79,13 +79,13 @@ plt.plot(exp_data[:, 0], exp_data[:, 1])
 
 
 fig, ax = plt.subplots()
-plt.imshow(mpimg.imread('roads_map.png'))
+plt.imshow(mpimg.imread('../1000_map.png'))
 circle = plt.Circle((500, 500), 5, color='r')
 
 plt.scatter(500 + ref_data[:, 0]*500/127, 500 + ref_data[:, 1]*500/127,s = 10)
 plt.scatter(500 + exp_data[:, 0]*500/127, 500 + exp_data[:, 1]*500/127,s = 5)
 
-
+# Saves to PDF
 plt.savefig('map_plot.pdf')
 plt.show()
 

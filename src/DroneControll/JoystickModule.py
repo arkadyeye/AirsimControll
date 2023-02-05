@@ -190,6 +190,7 @@ while done == False:
         textPrint.print(screen, "Joystick name: {}".format(name))
 
         # if name == "TCA YOKE BOEING":
+
         for j in range(len(joysticks_list)):
             joysticks_list[j].update(joystick)
 

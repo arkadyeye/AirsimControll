@@ -1,6 +1,6 @@
 '''
 
-this class maps yoke boeng game controller, to functions in drone
+this class maps HOTAS Joystick controller, to functions in drone
 note that sensitivity settings is defined here
 
 the drone should get simple movement commands, like :
@@ -16,6 +16,18 @@ axis 0 - right/left tilt rotation ( left = -1, right = 1)
 axis 1 - depth movement ( -1 = up, 1 = down)
 axis 2 - left hand speed stick ( up = -1, center = 0, down = 1)
 axis 3 - two buttons at the hand of the left stick
+
+Right joystick -
+pulling toward -> going up
+pushing forward -> going down
+turning left -> moving horizontal left
+turning right -> moving horizontal right
+pushing left -> turning left
+pushing right -> turning right
+
+Left joystick -
+Pushing forward -> increasing speed
+Pulling toward -> decreasing speed & reverse  
 
 
 
@@ -34,23 +46,26 @@ class HotasXController:
         # deal with axis
 
         # pass yaw
-        value = joystick.get_axis(3)
-        self.drone_controller.add_rotation(value)
+
+        if joystick.get_name() == "T.Flight Hotas X":
+            value = joystick.get_axis(3)
+            self.drone_controller.add_rotation(value)
 
         # pass speed
-        left_bar_value = (-1 * round(joystick.get_axis(2), 2))
+            left_bar_value = (-1 * round(joystick.get_axis(2), 2))
+            right_bar_value = (round(joystick.get_axis(0), 2))
         # depth_value = (-1 * round(joystick.get_axis(1), 2)) + 1
         # speed = left_bar_value * depth_value
         # self.drone_controller.set_speed(speed)
 
-        self.drone_controller.set_speed(left_bar_value*5)
+            self.drone_controller.set_speed(left_bar_value*5)
 
         # deal with buttons
 
         # horizontal movement
-        btn_left = -1 * joystick.get_axis(0)
-        btn_right = joystick.get_axis(0)
-        self.drone_controller.set_horizontal_movement((btn_left + btn_right)*5)
+            btn_left = -1 * joystick.get_axis(0)
+            btn_right = joystick.get_axis(0)
+            self.drone_controller.set_horizontal_movement((btn_left + btn_right)*5)
 
         # vertical movement
         # btn_up = joystick.get_button(2) # btn x - up
@@ -65,8 +80,8 @@ class HotasXController:
 
         # self.drone_controller.set_vertical_movement(btn_up+btn_down)
 
-        depth_value = (round(joystick.get_axis(1), 2))*0.1
-        self.drone_controller.set_vertical_movement(depth_value)
+            depth_value = (round(joystick.get_axis(1), 2))
+            self.drone_controller.set_vertical_movement(depth_value)
 
         '''
         idea by Oded L.M
