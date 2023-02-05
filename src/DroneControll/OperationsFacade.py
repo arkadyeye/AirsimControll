@@ -70,9 +70,13 @@ class OperationsFacade():
                 # checking if key "N" was pressed
                 if event.key == pygame.K_n:
                     print("Key N has been pressed")
-                    user_name = easygui.enterbox("What, is your ID?","New Experiment setup")
-                    print ("user name is:" ,user_name)
-                    gamelogic.start_game(user_name)
+                    user_name = easygui.enterbox("What, is your ID?", "New Experiment setup")
+                    age = easygui.enterbox("What, is your age?", "New Experiment setup")
+                    gender = easygui.enterbox("What, is your gender?", "New Experiment setup")
+                    driving_license = easygui.enterbox("Do you have driving license?", "New Experiment setup")
+                    flying_experience = easygui.enterbox("Do you have any flight experience?", "New Experiment setup")
+                    print("user name is:", user_name)
+                    gamelogic.start_game(user_name,age,gender,driving_license,flying_experience)
                     # here we should load the easypath. or maybe call to
                     # some experiment controller.start()
 

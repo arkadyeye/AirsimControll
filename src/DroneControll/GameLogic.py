@@ -21,6 +21,7 @@ import time
 import PathApi
 
 from Logger import PostAnalyser
+from ExportData import ExportData
 
 
 class GameLogic:
@@ -53,14 +54,31 @@ class GameLogic:
 
     pa = None
     user_name = ""
+    age = ""
+    gender = ""
+    driving_license = ""
+    flying_experience = ""
+    real_csv = None
+    train_csv = None
+    time_train = 0
+    time_main = 0
+
+
+
 
     def __init__(self, sim):
         self.sim = sim
 
-    def start_game(self, user_name):
+    def start_game(self, user_name,age,gender,driving_lic,flying_exp):
         if self.game_stage == self.STAGE_NOT_IN_GAME:
             self.user_name = user_name
+            self.age = age
+            self.gender = gender
+            self.driving_license = driving_lic
+            self.flying_experience = flying_exp
+
             self.pa = PostAnalyser(user_name + "_training")
+            self.train_csv = self.pa
             self.sim.flush_persistent_markers()
             self.load_path_file("SavedPaths\\short_path.json")
             self.game_stage = self.STAGE_TRAINING
@@ -82,20 +100,33 @@ class GameLogic:
             self.pa.close()
 
             # finishe training, and load real path
+            self.time_train = delta_time
+            print("Line 104: training time - ", self.time_train)
             easygui.msgbox("Yo have finished the Training\n Ready to start the real thing ?", "Path completed")
 
             self.load_path_file("SavedPaths\\long_path.json")
             self.pa = PostAnalyser(self.user_name + "_real")
+            self.real_csv = self.pa
             self.game_stage = self.STAGE_MAIN_PATH
             self.sim.restart_training()
+
 
             return
 
         if self.game_stage == self.STAGE_MAIN_PATH:
             # finishe the game
             self.game_stage = self.STAGE_NOT_IN_GAME
+            self.time_finished = delta_time
+            print("Line 120: real time - ", self.time_finished)
+            print("Line 120: train time - ", self.time_train)
             self.pa.close()
-            easygui.msgbox("Yo have completed the assignment in: " + delta_time + "\n Hurray !", "Path completed")
+            easygui.msgbox("You have completed the assignment in: " + delta_time + "\n Hurray !", "Path completed")
+            # Insert here Comparator Function
+            parameters = (self.user_name, self.age, self.gender, self.driving_license,
+                          self.flying_experience, self.time_train, self.time_finished)
+            exp_dataa = ExportData()
+            exp_dataa.exp_data(parameters)
+
 
     def update(self):
 

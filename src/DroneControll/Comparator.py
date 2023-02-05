@@ -13,6 +13,7 @@ a_z = []
 path_a=""
 path_b=""
 
+
 #load first csv
 from csv import reader
 import similaritymeasures

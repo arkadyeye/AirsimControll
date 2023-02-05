@@ -14,6 +14,7 @@ from datetime import datetime
 class PostAnalyser:
     csv_file = None
 
+
     def __init__(self, name):
         #create folder
         folder_name = "..//..//"+"{:%Y_%m_%d_%H_%M_%S}".format(datetime.now()) + "_" + name
