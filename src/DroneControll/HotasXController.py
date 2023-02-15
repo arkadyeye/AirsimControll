@@ -36,6 +36,10 @@ Pulling toward -> decreasing speed & reverse
 
 class HotasXController:
     drone_controller = None
+    joystick_name =  "T.Flight Hotas X"
+    speed_activated = False
+    vertical_speed_activated = False
+    horizontal_speed_activated = False
 
     def __init__(self,  drone_controller):
         print("hotas X created")
@@ -43,49 +47,44 @@ class HotasXController:
 
     def update(self, joystick):
 
+        if self.joystick_name != joystick.get_name():
+            return
+
         # deal with axis
 
         # pass yaw
-
-        if joystick.get_name() == "T.Flight Hotas X":
-            value = joystick.get_axis(3)
+        value = joystick.get_axis(3)
+        if round(value, 1) != 0:
             self.drone_controller.add_rotation(value)
 
         # pass speed
-            left_bar_value = (-1 * round(joystick.get_axis(2), 2))
-            right_bar_value = (round(joystick.get_axis(0), 2))
-        # depth_value = (-1 * round(joystick.get_axis(1), 2)) + 1
-        # speed = left_bar_value * depth_value
-        # self.drone_controller.set_speed(speed)
 
-            self.drone_controller.set_speed(left_bar_value*5)
-
-        # deal with buttons
+        stick_depth = -1 * (round(joystick.get_axis(1), 2))
+        if round(stick_depth, 1) != 0:
+            self.speed_activated = True
+            self.drone_controller.set_speed(stick_depth * 7.5)
+        else:
+            if self.speed_activated:
+                self.drone_controller.set_speed(0)
+                self.speed_activated = False
 
         # horizontal movement
-            btn_left = -1 * joystick.get_axis(0)
-            btn_right = joystick.get_axis(0)
-            self.drone_controller.set_horizontal_movement((btn_left + btn_right)*5)
+        stick_horizontal = (-1 * round(joystick.get_axis(0), 2))
+        if round(stick_horizontal, 1) != 0:
+            self.drone_controller.set_horizontal_movement(stick_horizontal * 4)
+            self.horizontal_speed_activated = True
+        else:
+            if self.horizontal_speed_activated:
+                self.drone_controller.set_horizontal_movement(stick_horizontal * 4)
+                self.horizontal_speed_activated = False;
 
-        # vertical movement
-        # btn_up = joystick.get_button(2) # btn x - up
-        # btn_down = joystick.get_button(3)  # btn x - down
-        # if btn_up == 1:
-        #     self.drone_controller.set_vertical_movement(1)
-        # if btn_down == 1:
-        #     self.drone_controller.set_vertical_movement(-1)
-        #
-        # if btn_up == 0 and btn_down == 0:
-        #     self.drone_controller.set_vertical_movement(0)
 
-        # self.drone_controller.set_vertical_movement(btn_up+btn_down)
-
-            depth_value = (round(joystick.get_axis(1), 2))
+        #vertical speed
+        depth_value = (round(joystick.get_axis(2), 2)) * 0.1
+        if round(depth_value, 1) != 0:
             self.drone_controller.set_vertical_movement(depth_value)
-
-        '''
-        idea by Oded L.M
-        make axis 3 and 5 (down bars) for gimble
-        make the speed acomulative by button/mini joystick
-        '''
-
+            self.vertical_speed_activated = True
+        else:
+            if self.vertical_speed_activated:
+                self.drone_controller.set_vertical_movement(0)
+                self.vertical_speed_activated = False

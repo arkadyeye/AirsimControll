@@ -20,7 +20,7 @@ import similaritymeasures
 import matplotlib.pyplot as plt
 # open file in read mode
 counter = 0
-with open('D:\\Git\\AirsimControll\\2023_02_05_11_43_47_Ohad_real\\path.csv', 'r') as read_obj:
+with open('D:\\Git\\AirsimControll\\2023_02_15_10_55_08_Wag_training\\path.csv', 'r') as read_obj:
     # pass the file object to reader() to get the reader object
     csv_reader = reader(read_obj)
     header = next(csv_reader)
@@ -45,7 +45,7 @@ a_x = []
 a_y = []
 a_z = []
 counter = 0
-with open('D:\\Git\\AirsimControll\\2023_02_05_11_42_51_Ohad_training\\path.csv', 'r') as read_obj:
+with open('D:\\Git\\AirsimControll\\2023_02_15_10_56_32_Wag_real\\path.csv', 'r') as read_obj:
     # pass the file object to reader() to get the reader object
     csv_reader = reader(read_obj)
     header = next(csv_reader)

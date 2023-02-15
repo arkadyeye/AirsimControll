@@ -6,8 +6,9 @@ from AirSimCarFacade import AirSimCarFacade
 from GameLogic import GameLogic
 from YokeController import YokeController
 from RedWheelController import RedWheelController
-from HotasXController import HotasXController
+# from HotasXControllerOhad import HotasXController
 from PathApi import PathApi
+from HotasXController import HotasXController
 from LogitechRacingController import LogitechRacingController
 
 
