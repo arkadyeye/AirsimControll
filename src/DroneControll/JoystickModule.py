@@ -2,15 +2,14 @@ import pygame
 #import AirSimControllerDualStick as sim
 from OperationsFacade import OperationsFacade
 from AirSimFacade import AirSimFacade
-from AirSimCarFacade import AirSimCarFacade
 from GameLogic import GameLogic
-from YokeController import YokeController
-from RedWheelController import RedWheelController
+from InputDevices.YokeController import YokeController
+from InputDevices.RedWheelController import RedWheelController
 # from HotasXControllerOhad import HotasXController
 from PathApi import PathApi
-from HotasXController import HotasXController
-from LogitechRacingController import LogitechRacingController
-from LogitechDualAction import LogitechDualAction
+from InputDevices.HotasXController import HotasXController
+from InputDevices.LogitechRacingController import LogitechRacingController
+from InputDevices.LogitechDualAction import LogitechDualAction
 
 
 
