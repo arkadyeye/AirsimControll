@@ -10,6 +10,9 @@ from RedWheelController import RedWheelController
 from PathApi import PathApi
 from HotasXController import HotasXController
 from LogitechRacingController import LogitechRacingController
+from LogitechDualAction import LogitechDualAction
+
+
 
 
 
@@ -105,6 +108,9 @@ for i in range(joystick_count):
 
     if name == "Logitech Racing Wheel":
         joysticks_list.append(LogitechRacingController(sim))
+
+    if name == "Logitech Dual Action":
+        joysticks_list.append(LogitechDualAction(sim))
 
 
 

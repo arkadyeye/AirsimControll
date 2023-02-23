@@ -62,18 +62,6 @@ def init():
     client.moveToPositionAsync(0, 0, -2.5, 1, vehicle_name="Drone0").join()
     client.rotateToYawAsync(180, vehicle_name="Drone0").join()
     client.simSetTraceLine([0.0, 1.0, 0.0, 0.8], 10, vehicle_name="Drone0")
-
-    # client.enableApiControl(True, vehicle_name="Drone1")  # enable API control on Drone0
-    # client.armDisarm(True, vehicle_name="Drone1")  # arm Drone0
-    #
-    # client.takeoffAsync(vehicle_name="Drone1").join()  # let Drone0 take-off
-    # # client.moveToPositionAsync(0, 0, -4.5, 1, vehicle_name="Drone1").join()
-    # client.hoverAsync(vehicle_name="Drone1").join()
-
-    # use this to imidiate move
-    # pose = airsim.Pose(airsim.Vector3r(0, 0, -300), airsim.to_quaternion(0, 0, 0))  # PRY in radians
-    # client.simSetVehiclePose(pose,True)
-
     print("AirSim Ready")
 
 
@@ -413,6 +401,12 @@ def moveToPoint(x, y):
     inner_z = -200
     client.moveToPositionAsync(x, y, inner_z, inner_speed).join()
 
+def get_position_by_pose(pose):
+    x = round(pose.position.x_val, 3)
+    y = round(pose.position.y_val, 3)
+    z = round(pose.position.z_val, 3)
+    yaw = round(math.degrees(airsim.to_eularian_angles(pose.orientation)[2]), 3)
+    return x, y, z, yaw
 
 from PIL import ImageChops
 from PIL import Image
@@ -449,12 +443,20 @@ def takeImage(x, y):
     prev_image = img1
     return True
 
+
+
 from Logger import PostAnalyser
-#pa = PostAnalyser(user_name + "_training")
+from time import sleep
+
 
 print ("here we start")
+json_name = "long_path.json"
+onPathSpeed = 5
+continue_flag = True
 init()
-load_path_from_json("SavedPaths//long_path.json")
+load_path_from_json("SavedPaths//"+json_name)
+pa = PostAnalyser("optimal_" + json_name + "_speed_" + str(onPathSpeed))
+
 client.simPlotPoints(points=list_of_vectors[:-1],
                      color_rgba=[1.0, 0.0, 0.0, 1.0], size=25, duration=0.5, is_persistent=True)
 
@@ -462,8 +464,33 @@ client.simPlotLineStrip(
     points=list_of_vectors[:-1],
     color_rgba=[1.0, 1.0, 0.0, 1.0], thickness=5, duration=0.5, is_persistent=True)
 
-result = client.moveOnPathAsync(list_of_vectors[:-1], 5, 120,
+result = client.moveOnPathAsync(list_of_vectors[:-1], onPathSpeed, 120,
                                     airsim.DrivetrainType.ForwardOnly, airsim.YawMode(False, 0), -1, 3,
-                                    vehicle_name="Drone0").join()
+                                    vehicle_name="Drone0")
 
-client.landAsync().join()
+#continue_flag = False
+middle_path = int(len(list_of_vectors)/2)
+target_on_path = list_of_vectors[middle_path]
+state = 1
+
+while continue_flag:
+    pose = client.simGetVehiclePose(vehicle_name="Drone0")
+    pa.add_pose(get_position_by_pose(pose))
+    sleep(0.033)
+
+    # as we can not add threads (because of airsim), we should find another way to stop the recording
+    # check if we reached the middle of the path
+    dist = pose.position.distance_to(target_on_path)
+    if state == 1 and dist < EPSILON:
+        state = 2
+        target_on_path = list_of_vectors[-2] # because we end the path one point before
+        print ("middle of the path")
+        continue
+
+    if state == 2 and dist < EPSILON:
+        continue_flag = False
+        print ("path end")
+
+pa.close()
+
+

@@ -152,7 +152,7 @@ class GameLogic:
         if not self.is_time_started:
             return
 
-        #update performance analyzer
+        # update performance analyzer
         self.pa.add_pose(self.sim.get_position_by_pose(pose))
 
         dist = pose.position.distance_to(self.list_of_vectors[self.target_on_path_index])
