@@ -63,6 +63,11 @@ class GameLogic:
     time_train = 0
     time_main = 0
 
+    csv_header = ""
+    csv_line = ""
+
+
+
 
 
 
@@ -77,7 +82,7 @@ class GameLogic:
             self.driving_license = driving_lic
             self.flying_experience = flying_exp
 
-            self.pa = PostAnalyser(user_name + "_training")
+            self.pa = PostAnalyser(user_name + "_training",self.csv_header)
             self.train_csv = self.pa
             self.sim.flush_persistent_markers()
             self.load_path_file("SavedPaths\\short_path.json")
@@ -105,11 +110,10 @@ class GameLogic:
             easygui.msgbox("Yo have finished the Training\n Ready to start the real thing ?", "Path completed")
 
             self.load_path_file("SavedPaths\\long_path.json")
-            self.pa = PostAnalyser(self.user_name + "_real")
+            self.pa = PostAnalyser(self.user_name + "_real",self.csv_header)
             self.real_csv = self.pa
             self.game_stage = self.STAGE_MAIN_PATH
             self.sim.restart_training()
-
 
             return
 
@@ -146,6 +150,7 @@ class GameLogic:
         if self.is_time_started == False and (pose.position.x_val != 0 or pose.position.y_val != 0):
             self.time_started = time.time()
             self.is_time_started = True
+            self.csv_line = ""
             print("time started")
 
         # update path drawing
@@ -154,6 +159,9 @@ class GameLogic:
 
         # update performance analyzer
         self.pa.add_pose(self.sim.get_position_by_pose(pose))
+        self.pa.add_csv_data(self.csv_line)
+        self.pa.write_full_line()
+        self.csv_line = ""
 
         dist = pose.position.distance_to(self.list_of_vectors[self.target_on_path_index])
         if dist < self.EPSILON and self.target_on_path_index + 1 < len(self.list_of_vectors):
@@ -167,6 +175,12 @@ class GameLogic:
             # check if experiment ended
             if len(sublist_of_vectors) <= 1:
                 self.finish_path()
+
+
+    def addCsvHeader(self,csv_header):
+        self.csv_header = self.csv_header + "," + csv_header
+    def addCsvData(self,csv_data):
+        self.csv_line = self.csv_line + "," + csv_data
 
     def load_path_file(self, filename):
         print("Line 67 called from GameLogic.py")

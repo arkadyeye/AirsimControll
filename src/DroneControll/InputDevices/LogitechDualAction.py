@@ -24,6 +24,7 @@ axis 3 - left stick : up/down (up = -1, down = 1)
 class LogitechDualAction:
     drone_controller = None
     joystick_name = "Logitech Dual Action"
+    csv_name = "d_stick"
     speed_activated = False
     vertical_speed_activated = False
     horizontal_speed_activated = False
@@ -31,6 +32,33 @@ class LogitechDualAction:
     def __init__(self,  drone_controller):
         print("Logitech dual action created")
         self.drone_controller = drone_controller
+
+    def getCsvHeader(self):
+        # logitec dual stick joystik has 4 axis, 12 buttons, and one hat
+        # so it means 18 places
+        return "name, yaw,v_speed,h_speed,speed,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,hat_x,hat_y"
+
+    def getCsvState(self, joystick):
+        ans = self.csv_name
+        axes = joystick.get_numaxes()
+
+        for i in range(axes):
+            axis = joystick.get_axis(i)
+            ans = ans + ","+str(round(axis, 3))
+
+        buttons = joystick.get_numbuttons()
+        for i in range(buttons):
+            button = joystick.get_button(i)
+            ans = ans + "," + str(button)
+
+        hats = joystick.get_numhats()
+        for i in range(hats):
+            hat = joystick.get_hat(i)
+            ans = ans + "," + str(hat[0])
+            ans = ans + "," + str(hat[1])
+
+        return ans
+
 
     def update(self, joystick):
 

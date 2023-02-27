@@ -26,6 +26,7 @@ btn 4 -
 class LogitechRacingController:
     drone_controller = None
     joystick_name = "Logitech Racing Wheel"
+    csv_name = "b_wheel"
     speed = 0
     speed_activated = False
     vertical_speed_activated = False
@@ -34,6 +35,27 @@ class LogitechRacingController:
     def __init__(self, drone_controller):
         print("Logitech Racing created")
         self.drone_controller = drone_controller
+
+    def getCsvState(self, joystick):
+        ans = self.csv_name
+        axes = joystick.get_numaxes()
+
+        for i in range(axes):
+            axis = joystick.get_axis(i)
+            ans = ans + ","+str(round(axis, 3))
+
+        buttons = joystick.get_numbuttons()
+        for i in range(buttons):
+            button = joystick.get_button(i)
+            ans = ans + "," + str(button)
+
+        hats = joystick.get_numhats()
+        for i in range(hats):
+            hat = joystick.get_hat(i)
+            ans = ans + "," + str(hat[0])
+            ans = ans + "," + str(hat[1])
+
+        return ans
 
     def update(self, joystick):
 

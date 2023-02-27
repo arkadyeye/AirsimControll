@@ -11,6 +11,8 @@ from InputDevices.HotasXController import HotasXController
 from InputDevices.LogitechRacingController import LogitechRacingController
 from InputDevices.LogitechDualAction import LogitechDualAction
 
+from InputDevices.PressureUdp import PressureUdp
+
 
 
 
@@ -71,16 +73,15 @@ clock = pygame.time.Clock()
 # init airsim
 sim = AirSimFacade("Drone0")
 #sim = AirSimCarFacade("PhysXCar")
-gameLogic = GameLogic(sim)
+
 pathApi = PathApi()
-# Pathapi.load_path_file("SavedPaths\\167290525.json", gamelogic)
 
-# training path
-#
-#pathApi.load_path_file("SavedPaths\\167299251.json", gameLogic)
+# init upd server
+pressure_listener = PressureUdp()
+pressure_listener.init()
 
-# real path
-#pathApi.load_path_file("SavedPaths\\167299362.json", gameLogic)
+# init game logic and internal logger
+gameLogic = GameLogic(sim)
 
 # Initialize the joysticks
 pygame.joystick.init()
@@ -111,19 +112,14 @@ for i in range(joystick_count):
     if name == "Logitech Dual Action":
         joysticks_list.append(LogitechDualAction(sim))
 
-
+    gameLogic.addCsvHeader(joysticks_list[-1].getCsvHeader())
 
 
 # Get ready to print
 textPrint = TextPrint()
 
 
-#sim.init()
-
-
 OperationsFacade = OperationsFacade()
-
-#init results analyzer
 
 
 
@@ -185,9 +181,6 @@ while done == False:
     # For each joystick:
     for i in range(joystick_count):
         joystick = pygame.joystick.Joystick(i)
-        # joystick.init()
-        # print("joy "+str(i)+" axis"+str(joystick.get_axis(0)))
-
         textPrint.print(screen, "Joystick {}".format(i))
         textPrint.indent()
 
@@ -195,10 +188,17 @@ while done == False:
         name = joystick.get_name()
         textPrint.print(screen, "Joystick name: {}".format(name))
 
-        # if name == "TCA YOKE BOEING":
+        # find the right name of the joystic, and use it
 
+        joystick_index = -1
         for j in range(len(joysticks_list)):
+            if joystick.get_name() == joysticks_list[j].joystick_name:
+                joystick_index = j
+                break
+
+        if j != -1:
             joysticks_list[j].update(joystick)
+            gameLogic.addCsvData(joysticks_list[j].getCsvState(joystick))
 
 
         # Usually axis run in pairs, up/down for one, and left/right for
@@ -209,15 +209,6 @@ while done == False:
 
         for i in range(axes):
             axis = joystick.get_axis(i)
-            # if i == 0:  # means X
-            #     sim.add_rotation(axis)
-            # if i == 1: # means Y
-            #     sim.set_speed(axis)
-            # if i == 2:
-            #     sim.set_horizontal_speed(axis)
-            # if i == 3:
-            #     sim.add_vertical_position(axis)
-
             textPrint.print(screen, "Axis {} value: {:>6.0f}".format(i, axis))
         textPrint.unindent()
 
@@ -231,10 +222,9 @@ while done == False:
             textPrint.print(screen, "Button {:>2} value: {}".format(i, button))
             buttons_list.append(button)
 
-            if button == 1:
-                print("button pressed: ", i)  # because buttons numbered from 0 in system, but from 1 on remote
+            # if button == 1:
+            #     print("button pressed: ", i)  # because buttons numbered from 0 in system, but from 1 on remote
         textPrint.unindent()
-        #sim.update_buttons(buttons_list)
 
         # Hat switch. All or nothing for direction, not like joysticks.
         # Value comes back in an array.
@@ -250,10 +240,13 @@ while done == False:
         textPrint.unindent()
 
         textPrint.print(screen, "--------------------------------")
+
+
+
         pose = sim.get_position()
 
         textPrint.print(screen, "Drone position: [ " + str(pose) + " ]")
-        gameLogic.update()
+
 
 
     # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
@@ -261,6 +254,8 @@ while done == False:
     # Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
 
+    # update logic and logger
+    gameLogic.update()
     # update drone position
     sim.update_loop()
 

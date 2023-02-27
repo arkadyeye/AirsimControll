@@ -13,9 +13,10 @@ from datetime import datetime
 
 class PostAnalyser:
     csv_file = None
+    full_line = ""
 
 
-    def __init__(self, name):
+    def __init__(self, name,header):
         #create folder
         folder_name = "..//..//"+"{:%Y_%m_%d_%H_%M_%S}".format(datetime.now()) + "_" + name
         os.mkdir(folder_name)
@@ -23,7 +24,7 @@ class PostAnalyser:
 
         #create csv file for the results
         self.csv_file = open(folder_name + "//path.csv", "w")
-        self.csv_file.write("timeMS,x,y,z,yaw\n")
+        self.csv_file.write("timeMS,x,y,z,yaw,"+header+"\n")
 
         ##f.close()
 
@@ -31,6 +32,14 @@ class PostAnalyser:
         self.csv_file.close()
 
     def add_pose(self, position):
-        data_line = str(round(time.time()*1000))+","+str(position[0])+","+str(position[1])+","+str(position[2])+","+str(position[3])+"\n"
-        self.csv_file.write(data_line)
+        self.full_line = self.full_line + str(round(time.time()*1000))+","+str(position[0])+","+str(position[1])+","+str(position[2])+","+str(position[3])
+
+    def add_csv_data(self,csv_data):
+        self.full_line = self.full_line + "," + csv_data
+
+    def write_full_line(self):
+        self.csv_file.write(self.full_line + "\n")
+        self.full_line = ""
+
+
 
