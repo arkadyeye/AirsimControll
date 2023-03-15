@@ -36,6 +36,12 @@ class LogitechRacingController:
         print("Logitech Racing created")
         self.drone_controller = drone_controller
 
+    def getCsvHeader(self):
+        # logitec dual stick joystik has 4 axis, 12 buttons, and one hat
+        # so it means 18 places
+        return "name,yaw,speed,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,hat_x,hat_y"
+
+
     def getCsvState(self, joystick):
         ans = self.csv_name
         axes = joystick.get_numaxes()
@@ -82,26 +88,34 @@ class LogitechRacingController:
         # deal with buttons
         x, y = joystick.get_hat(0)
         if x != 0:
-            self.drone_controller.set_horizontal_movement(x * (-5))
+            self.drone_controller.set_horizontal_movement(x * (-4))
             self.horizontal_speed_activated = True
         else:
             if self.horizontal_speed_activated:
                 self.horizontal_speed_activated = False
                 self.drone_controller.set_horizontal_movement(0)
 
+        if y != 0:
+            self.drone_controller.set_vertical_movement(y * 5)
+            self.vertical_speed_activated = True
+        else:
+            if self.vertical_speed_activated:
+                self.vertical_speed_activated = False
+                self.drone_controller.set_vertical_movement(0)
+
         #looks like the left hat should be enabled for up/down too
 
-        btn_up = joystick.get_button(3)
-        btn_down = joystick.get_button(1)
-        if btn_up == 1:
-            self.drone_controller.set_vertical_movement(2)
-            self.vertical_speed_activated = True
-        if btn_down == 1:
-            self.drone_controller.set_vertical_movement(-2)
-            self.vertical_speed_activated = True
-
-        if btn_up == 0 and btn_down == 0 and self.vertical_speed_activated:
-            self.drone_controller.set_vertical_movement(0)
-            self.vertical_speed_activated = False
+        # btn_up = joystick.get_button(3)
+        # btn_down = joystick.get_button(1)
+        # if btn_up == 1:
+        #     self.drone_controller.set_vertical_movement(2)
+        #     self.vertical_speed_activated = True
+        # if btn_down == 1:
+        #     self.drone_controller.set_vertical_movement(-2)
+        #     self.vertical_speed_activated = True
+        #
+        # if btn_up == 0 and btn_down == 0 and self.vertical_speed_activated:
+        #     self.drone_controller.set_vertical_movement(0)
+        #     self.vertical_speed_activated = False
 
         #self.drone_controller.set_vertical_movement(btn_up + btn_down)
