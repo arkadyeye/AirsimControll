@@ -12,6 +12,7 @@ from InputDevices.LogitechRacingController import LogitechRacingController
 from InputDevices.LogitechDualAction import LogitechDualAction
 
 from InputDevices.PressureUdp import PressureUdp
+from InputDevices.EmotiBitUdp import EmotiBitUdp
 
 
 
@@ -76,9 +77,13 @@ sim = AirSimFacade("Drone0")
 
 pathApi = PathApi()
 
-# init upd server
+# init upd server(s)
+
 pressure_listener = PressureUdp()
 pressure_listener.init()
+
+emoti_listener = EmotiBitUdp()
+emoti_listener.init()
 
 # init game logic and internal logger
 gameLogic = GameLogic(sim)
