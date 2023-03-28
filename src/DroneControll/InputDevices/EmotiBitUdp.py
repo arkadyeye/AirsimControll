@@ -11,11 +11,6 @@ import socket
 from time import sleep
 
 
-
-
-
-
-
 class EmotiBitUdp:
 
     '''
@@ -34,53 +29,53 @@ class EmotiBitUdp:
         # my logic is just to save the last status, and write it to csv, ance requested (every 30 fps)
 
         # AX,AY,AZ
-        self.last_acc_x = 0
-        self.last_acc_y = 0
-        self.last_acc_z = 0
+        self.last_acc_x = "n/a"
+        self.last_acc_y = "n/a"
+        self.last_acc_z = "n/a"
 
         # GX,GY,GZ
-        self.last_gyro_x = 0
-        self.last_gyro_y = 0
-        self.last_gyro_z = 0
+        self.last_gyro_x = "n/a"
+        self.last_gyro_y = "n/a"
+        self.last_gyro_z = "n/a"
 
-        self.last_mag_x = 0
-        self.last_mag_y = 0
-        self.last_mag_z = 0
+        self.last_mag_x = "n/a"
+        self.last_mag_y = "n/a"
+        self.last_mag_z = "n/a"
 
         # EDA- Electrodermal Activity, EDL- Electrodermal Level
-        self.last_EDA = 0
-        self.last_EDL = 0
+        self.last_EDA = "n/a"
+        self.last_EDL = "n/a"
 
         # BI	Heart Inter-beat Interval
-        self.last_BI = 0
+        self.last_BI = "n/a"
 
         # HR	Heart Rate
-        self.last_HR = 0
+        self.last_HR = "n/a"
 
         # PPG - heart sensor, there 3 colors: Red (PR),Green(PG),InfraRed(PI)
-        self.last_PR = 0
-        self.last_PG = 0
-        self.last_PI = 0
+        self.last_PR = "n/a"
+        self.last_PG = "n/a"
+        self.last_PI = "n/a"
 
         # SA	Skin Conductance Response (SCR) Amplitude
-        self.last_SA = 0
+        self.last_SA = "n/a"
 
         # SF	Skin Conductance Response (SCR) Frequency
-        self.last_SF = 0
+        self.last_SF = "n/a"
 
         # SR	Skin Conductance Response (SCR) Rise Time
-        self.last_SR = 0
+        self.last_SR = "n/a"
 
         # T1    Temperature
-        self.last_T1 = 0
+        self.last_T1 = "n/a"
 
 
         # B% - battery percentage
-        self.last_battery = 0
+        self.last_battery = "n/a"
 
         # TL    TimeStamp Local. look like a syncronization clock value
-        self.last_TL = ""
-        self.last_TL_internal_time = 0
+        self.last_TL = "n/a"
+        self.last_TL_internal_time = "n/a"
 
     def parse_update(self,string_data):
         splited_string = string_data.split(",")
@@ -145,8 +140,22 @@ class EmotiBitUdp:
             self.last_TL = data
             self.last_TL_internal_time = splited_string[0]
 
+    def get_header_csv(self):
+        return "AX,AY,AZ,GX,GY,GZ,MX,MY,MZ,EDA,EDL,HR,BI,PR,PG,PI,SA,SF,SR,T1,B%,TL,TLI"
 
-        now, we have to add a funtion, that will output a string of all values in one line
+    def get_status_csv(self):
+        ans = ""
+        ans = ans + self.last_acc_x + "," + self.last_acc_y + "," + self.last_acc_z
+        ans = ans + self.last_gyro_x + "," + self.last_gyro_y + "," + self.last_gyro_z
+        ans = ans + self.last_mag_x + "," + self.last_mag_y + "," + self.last_mag_z
+        ans = ans + self.last_EDA + "," + self.last_EDL + "," + self.last_HR + "," + self.last_BI
+        ans = ans + self.last_PR + "," + self.last_PG + "," + self.last_PI
+        ans = ans + self.last_SA + "," + self.last_SF + "," + self.last_SR + "," + self.last_T1
+        ans = ans + self.last_battery + "," + self.last_TL + "," + self.last_TL_internal_time
+
+
+
+        return ans
 
     def listen(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
