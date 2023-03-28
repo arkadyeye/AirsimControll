@@ -163,6 +163,8 @@ class GameLogic:
         self.pa.write_full_line()
         self.csv_line = ""
 
+
+        # update path drawing (remove already passed cubes)
         dist = pose.position.distance_to(self.list_of_vectors[self.target_on_path_index])
         if dist < self.EPSILON and self.target_on_path_index + 1 < len(self.list_of_vectors):
             # increment node on path index

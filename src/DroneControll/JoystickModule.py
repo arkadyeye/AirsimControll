@@ -118,6 +118,11 @@ for i in range(joystick_count):
         joysticks_list.append(LogitechDualAction(sim))
 
     gameLogic.addCsvHeader(joysticks_list[-1].getCsvHeader())
+    # !!!!!!! add here the preasure from different joystick
+
+
+# add header of emotibit and head tracker(?)
+gameLogic.addCsvHeader(emoti_listener.get_header_csv())
 
 
 # Get ready to print
@@ -246,15 +251,15 @@ while done == False:
 
         textPrint.print(screen, "--------------------------------")
 
-
-
         pose = sim.get_position()
-
         textPrint.print(screen, "Drone position: [ " + str(pose) + " ]")
 
 
 
     # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
+
+    # collect data from EmotiBit and Head Tarcker (?)
+    gameLogic.addCsvData(emoti_listener.get_status_csv())
 
     # Go ahead and update the screen with what we've drawn.
     pygame.display.flip()
