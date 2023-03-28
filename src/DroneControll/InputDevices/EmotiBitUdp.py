@@ -78,8 +78,11 @@ class EmotiBitUdp:
         self.last_TL_internal_time = "n/a"
 
     def parse_update(self,string_data):
+
+        print ("parse called for : ",string_data)
+
         splited_string = string_data.split(",")
-        index_of_data = splited_string[2] + 5
+        index_of_data = int(splited_string[2]) + 5
         data = splited_string[index_of_data]
         #9 degree orientation
         if 'AX' in string_data:
@@ -104,9 +107,9 @@ class EmotiBitUdp:
             self.last_mag_z = data
 
         # biometric data
-        if 'EDA' in string_data:
+        if 'EA' in string_data:
             self.last_EDA = data
-        if 'EDL' in string_data:
+        if 'EL' in string_data:
             self.last_EDL = data
 
         if 'HR' in string_data:
@@ -145,12 +148,12 @@ class EmotiBitUdp:
 
     def get_status_csv(self):
         ans = ""
-        ans = ans + self.last_acc_x + "," + self.last_acc_y + "," + self.last_acc_z
-        ans = ans + self.last_gyro_x + "," + self.last_gyro_y + "," + self.last_gyro_z
-        ans = ans + self.last_mag_x + "," + self.last_mag_y + "," + self.last_mag_z
-        ans = ans + self.last_EDA + "," + self.last_EDL + "," + self.last_HR + "," + self.last_BI
-        ans = ans + self.last_PR + "," + self.last_PG + "," + self.last_PI
-        ans = ans + self.last_SA + "," + self.last_SF + "," + self.last_SR + "," + self.last_T1
+        ans = ans + self.last_acc_x + "," + self.last_acc_y + "," + self.last_acc_z + ","
+        ans = ans + self.last_gyro_x + "," + self.last_gyro_y + "," + self.last_gyro_z + ","
+        ans = ans + self.last_mag_x + "," + self.last_mag_y + "," + self.last_mag_z + ","
+        ans = ans + self.last_EDA + "," + self.last_EDL + "," + self.last_HR + "," + self.last_BI + ","
+        ans = ans + self.last_PR + "," + self.last_PG + "," + self.last_PI + ","
+        ans = ans + self.last_SA + "," + self.last_SF + "," + self.last_SR + "," + self.last_T1 + ","
         ans = ans + self.last_battery + "," + self.last_TL + "," + self.last_TL_internal_time
 
 
@@ -167,7 +170,8 @@ class EmotiBitUdp:
             string_data = data.decode("utf-8")
 
             # if 'HR' in string_data:
-            print (string_data)
+            #print (string_data)
+            self.parse_update(string_data)
     #          here we should get the data, parse it, and somehow store in a convinient way
     #          but maybe we just need it as string ? because in the end, the data will be string in csv
 
