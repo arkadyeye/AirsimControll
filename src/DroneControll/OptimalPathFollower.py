@@ -455,7 +455,7 @@ onPathSpeed = 5
 continue_flag = True
 init()
 load_path_from_json("SavedPaths//"+json_name)
-pa = PostAnalyser("optimal_" + json_name + "_speed_" + str(onPathSpeed))
+pa = PostAnalyser("optimal_" + json_name + "_speed_" + str(onPathSpeed),"")
 
 client.simPlotPoints(points=list_of_vectors[:-1],
                      color_rgba=[1.0, 0.0, 0.0, 1.0], size=25, duration=0.5, is_persistent=True)

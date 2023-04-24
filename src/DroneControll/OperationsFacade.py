@@ -75,8 +75,9 @@ class OperationsFacade():
                     gender = easygui.enterbox("What, is your gender?", "New Experiment setup")
                     driving_license = easygui.enterbox("Do you have driving license?", "New Experiment setup")
                     flying_experience = easygui.enterbox("Do you have any flight experience?", "New Experiment setup")
+                    adhd = easygui.enterbox("Do you have ADHD or similar?", "New Experiment setup")
                     print("user name is:", user_name)
-                    gamelogic.start_game(user_name,age,gender,driving_license,flying_experience)
+                    gamelogic.start_game(user_name,age,gender,driving_license,flying_experience,adhd)
                     # here we should load the easypath. or maybe call to
                     # some experiment controller.start()
 
