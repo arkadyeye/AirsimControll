@@ -24,7 +24,7 @@ class PostAnalyser:
 
         #create csv file for the results
         self.csv_file = open(folder_name + "//path.csv", "w")
-        self.csv_file.write("timeMS,x,y,z,yaw,"+header+"\n")
+        self.csv_file.write("timeMS,x,y,z,yaw,collisions,"+header+"\n")
 
         ##f.close()
 
@@ -33,6 +33,8 @@ class PostAnalyser:
 
     def add_pose(self, position):
         self.full_line = self.full_line + str(round(time.time()*1000))+","+str(position[0])+","+str(position[1])+","+str(position[2])+","+str(position[3])
+    def add_collision(self, collision_counter):
+        self.full_line = self.full_line + str(collision_counter)+","
 
     def add_csv_data(self,csv_data):
         self.full_line = self.full_line + "," + csv_data

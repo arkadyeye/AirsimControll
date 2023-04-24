@@ -9,6 +9,7 @@ import math
 
 
 class AirSimFacade:
+
     client = None
     drone_name = "Drone0"
     automatic_mode = False
@@ -20,6 +21,10 @@ class AirSimFacade:
     horizontal_speed = 0
 
     camera_heading = 180
+
+    prev_collision_id = None
+    prev_collision_name = None
+    collision_counter = 0
 
     def __init__(self, drone_name):
         self.drone_name = drone_name
@@ -151,6 +156,24 @@ class AirSimFacade:
         z = round(pose.position.z_val, 3)
         return self.air_sim.Vector3r(x, y, z)
 
+
+    def get_colisons_counter(self):
+        info = self.client.simGetCollisionInfo(vehicle_name="Drone0")
+        obj_id = info.object_id
+        obj_name = info.object_name
+        if info.has_collided:
+            #print ("obj id",obj_id)
+            #print("obj id", obj_name)
+
+            if obj_name != self.prev_collision_name:
+                self.collision_counter += 1
+                self.prev_collision_name = obj_name
+
+        else:
+            self.prev_collision_name = None
+        #print("drone state", info)
+        print("colision counter", self.collision_counter)
+        return self.collision_counter
     def teleport_to(self, x, y, z, text):
         pose_drone = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
         yaw = self.air_sim.to_eularian_angles(pose_drone.orientation)[2]
