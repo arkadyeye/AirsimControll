@@ -82,7 +82,10 @@ class AirSimFacade:
         self.client.landAsync().join()
 
     def restart_training(self):
-        pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(0, 0, 0))  # PRY in radians
+        pose_drone = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
+        yaw = self.air_sim.to_eularian_angles(pose_drone.orientation)[2]
+
+        pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(0, 0, -yaw))  # PRY in radians
         self.client.simSetVehiclePose(pose, True)
         self.automatic_mode = False
 
@@ -171,8 +174,6 @@ class AirSimFacade:
 
         else:
             self.prev_collision_name = None
-        #print("drone state", info)
-        print("colision counter", self.collision_counter)
         return self.collision_counter
     def teleport_to(self, x, y, z, text):
         pose_drone = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
@@ -184,18 +185,23 @@ class AirSimFacade:
         self.client.simPlotStrings(strings=[text], positions=[self.air_sim.Vector3r(x + 1, y, z)],
                                    scale=10, color_rgba=[1.0, 0.0, 1.0, 1.0], duration=10.0)
 
-    def draw_path(self, sublist_of_vectors):
+    def draw_path(self, sublist_of_vectors, style=""):
 
         if len(sublist_of_vectors) == 0:
             return
 
         self.client.simFlushPersistentMarkers()
 
-        self.client.simPlotPoints(points=sublist_of_vectors,
-                                  color_rgba=[1.0, 0.0, 0.0, 1.0], size=50, duration=-1, is_persistent=True)
+        if style == "free":
+            self.client.simPlotPoints(points=sublist_of_vectors,
+                                      color_rgba=[1.0, 0.0, 0.0, 1.0], size=75, duration=-1, is_persistent=True)
+            return
 
-        self.client.simPlotLineStrip(points=sublist_of_vectors,
-                                     color_rgba=[1.0, 1.0, 0.0, 1.0], thickness=5, duration=-1, is_persistent=True)
+        if style == "path":
+            self.client.simPlotPoints(points=sublist_of_vectors,
+                                      color_rgba=[1.0, 0.0, 0.0, 1.0], size=50, duration=-1, is_persistent=True)
+            self.client.simPlotLineStrip(points=sublist_of_vectors,
+                                         color_rgba=[1.0, 1.0, 0.0, 1.0], thickness=5, duration=-1, is_persistent=True)
 
     def flush_persistent_markers(self):
         self.client.simFlushPersistentMarkers()

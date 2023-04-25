@@ -2,7 +2,7 @@ import pygame
 #import AirSimControllerDualStick as sim
 from OperationsFacade import OperationsFacade
 from AirSimFacade import AirSimFacade
-from GameLogic import GameLogic
+from GameLogicExp1 import GameLogic
 from InputDevices.YokeController import YokeController
 from InputDevices.RedWheelController import RedWheelController
 # from HotasXControllerOhad import HotasXController

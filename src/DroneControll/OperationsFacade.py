@@ -3,7 +3,7 @@ import time
 import random
 import easygui
 
-import GameLogic
+import GameLogicExp1
 
 
 '''

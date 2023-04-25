@@ -18,7 +18,7 @@ class PathApi:
             json.dump(self.list_of_path, f, ensure_ascii=False, indent=4)
 
     def load_path_file(self, filename, game_logic):
-        print("Line 67 called from GameLogic.py")
+        print("Line 67 called from GameLogicExp1.py")
         # open file dialog
         # path = easygui.fileopenbox()
 

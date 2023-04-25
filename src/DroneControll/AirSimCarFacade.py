@@ -77,6 +77,7 @@ class AirSimCarFacade:
     def land(self):
         self.automatic_mode = True
         self.client.landAsync().join()
+
     def update_loop(self):
         pass
 
@@ -152,15 +153,20 @@ class AirSimCarFacade:
         self.client.simPlotStrings(strings=[text], positions=[self.air_sim.Vector3r(x + 1, y, z)],
                                    scale=10, color_rgba=[1.0, 0.0, 1.0, 1.0], duration=10.0)
 
-    def draw_path(self, sublist_of_vectors):
+    def draw_path(self, sublist_of_vectors, style="path"):
 
         if len(sublist_of_vectors) == 0:
             return
 
         self.client.simFlushPersistentMarkers()
 
-        self.client.simPlotPoints(points=sublist_of_vectors,
-                                  color_rgba=[1.0, 0.0, 0.0, 1.0], size=50, duration=-1, is_persistent=True)
+        if style == "free":
+            self.client.simPlotPoints(points=sublist_of_vectors,
+                                      color_rgba=[1.0, 0.0, 0.0, 1.0], size=100, duration=-1, is_persistent=True)
+            return
 
-        self.client.simPlotLineStrip(points=sublist_of_vectors,
-                                     color_rgba=[1.0, 1.0, 0.0, 1.0], thickness=5, duration=-1, is_persistent=True)
+        if style == "path":
+            self.client.simPlotPoints(points=sublist_of_vectors,
+                                      color_rgba=[1.0, 0.0, 0.0, 1.0], size=50, duration=-1, is_persistent=True)
+            self.client.simPlotLineStrip(points=sublist_of_vectors,
+                                         color_rgba=[1.0, 1.0, 0.0, 1.0], thickness=5, duration=-1, is_persistent=True)
