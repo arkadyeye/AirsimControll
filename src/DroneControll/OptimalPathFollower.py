@@ -491,6 +491,8 @@ while continue_flag:
         continue_flag = False
         print ("path end")
 
+    pa.write_full_line()
+
 pa.close()
 
 

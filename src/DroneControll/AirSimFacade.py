@@ -85,7 +85,8 @@ class AirSimFacade:
         pose_drone = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
         yaw = self.air_sim.to_eularian_angles(pose_drone.orientation)[2]
 
-        pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(0, 0, -yaw))  # PRY in radians
+        print ("drone yaw ",yaw)
+        pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(0, 0, 90))  # PRY in radians
         self.client.simSetVehiclePose(pose, True)
         self.automatic_mode = False
 

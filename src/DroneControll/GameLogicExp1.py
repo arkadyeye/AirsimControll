@@ -179,7 +179,7 @@ class GameLogic:
             #exp_dataa = ExportData()
             #exp_dataa.exp_data(parameters)
 
-            self.game_stage == self.STAGE_NOT_IN_GAME
+            self.game_stage = self.STAGE_NOT_IN_GAME
 
             return
 
