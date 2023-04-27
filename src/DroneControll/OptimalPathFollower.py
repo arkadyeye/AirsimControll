@@ -450,7 +450,7 @@ from time import sleep
 
 
 print ("here we start")
-json_name = "long_path.json"
+json_name = "short_path.json"
 onPathSpeed = 5
 continue_flag = True
 init()

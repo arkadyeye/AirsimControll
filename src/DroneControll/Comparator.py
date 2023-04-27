@@ -21,8 +21,8 @@ import matplotlib.pyplot as plt
 # open file in read mode
 counter = 0
 
-PathA = "SavedPaths\\long_path_optimal.csv"
-PathB = "D:\\Git\\AirsimControll\\2023_02_23_11_38_51_Ark_test_optimal_real\\path.csv"
+PathA = "SavedPaths\\optimal_long_5_path.csv"
+PathB = "D:\\Git\\AirsimControll\\2023_04_27_14_24_50_b_real\\path.csv"
 
 with open(PathA, 'r') as read_obj:
     # pass the file object to reader() to get the reader object

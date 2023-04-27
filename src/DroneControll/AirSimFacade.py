@@ -88,8 +88,9 @@ class AirSimFacade:
         yaw = self.air_sim.to_eularian_angles(pose_drone.orientation)[2]
 
         print("drone yaw ", yaw)
-        pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(0, 0, -90))  # PRY in radians
+        pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(0, 0, 0))  # PRY in radians
         self.client.simSetVehiclePose(pose, True)
+        self.client.rotateToYawAsync(180, vehicle_name=self.drone_name).join()
         self.automatic_mode = False
 
     def update_loop(self):
@@ -180,12 +181,13 @@ class AirSimFacade:
         return self.collision_counter
 
     def teleport_to(self, x, y, z, text=None):
-        pose_drone = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
-        yaw = self.air_sim.to_eularian_angles(pose_drone.orientation)[2]
+        #pose_drone = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
+        #yaw = self.air_sim.to_eularian_angles(pose_drone.orientation)[2]
         # pose = airsim.Pose(airsim.Vector3r(x*math.cos(yaw)*5, y*5*math.sin(yaw), z), airsim.to_quaternion(0, 0, yaw))  # PRY in radians
         pose = self.air_sim.Pose(self.air_sim.Vector3r(x, y, z),
-                                 self.air_sim.to_quaternion(0, 0, yaw))  # PRY in radians
+                                 self.air_sim.to_quaternion(0, 0, 0))  # PRY in radians
         self.client.simSetVehiclePose(pose, True)
+        self.client.rotateToYawAsync(180, vehicle_name=self.drone_name).join()
         if text:
             self.client.simPlotStrings(strings=[text], positions=[self.air_sim.Vector3r(x + 1, y, z)],
                                        scale=10, color_rgba=[1.0, 0.0, 1.0, 1.0], duration=10.0)
