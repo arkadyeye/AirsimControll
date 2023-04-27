@@ -9,7 +9,6 @@ import math
 
 
 class AirSimFacade:
-
     client = None
     drone_name = "Drone0"
     automatic_mode = False
@@ -72,7 +71,6 @@ class AirSimFacade:
 
     def land(self):
 
-
         self.automatic_mode = True
 
         self.drone_speed = 0
@@ -82,11 +80,17 @@ class AirSimFacade:
         self.client.landAsync().join()
 
     def restart_training(self):
+
+        self.collision_counter = 0
+        self.prev_collision_name = None
+
         pose_drone = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
         yaw = self.air_sim.to_eularian_angles(pose_drone.orientation)[2]
 
-        pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(0, 0, -yaw))  # PRY in radians
+        print("drone yaw ", yaw)
+        pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(0, 0, 0))  # PRY in radians
         self.client.simSetVehiclePose(pose, True)
+        self.client.rotateToYawAsync(180, vehicle_name=self.drone_name).join()
         self.automatic_mode = False
 
     def update_loop(self):
@@ -146,12 +150,13 @@ class AirSimFacade:
         yaw = round(math.degrees(self.air_sim.to_eularian_angles(pose.orientation)[2]), 3)
         return x, y, z, yaw
 
-    def get_position_by_pose(self,pose):
+    def get_position_by_pose(self, pose):
         x = round(pose.position.x_val, 3)
         y = round(pose.position.y_val, 3)
         z = round(pose.position.z_val, 3)
         yaw = round(math.degrees(self.air_sim.to_eularian_angles(pose.orientation)[2]), 3)
         return x, y, z, yaw
+
     def get_position_vector(self):
         pose = self.client.simGetVehiclePose(vehicle_name="Drone0")
         x = round(pose.position.x_val, 3)
@@ -159,14 +164,13 @@ class AirSimFacade:
         z = round(pose.position.z_val, 3)
         return self.air_sim.Vector3r(x, y, z)
 
-
     def get_colisons_counter(self):
         info = self.client.simGetCollisionInfo(vehicle_name="Drone0")
         obj_id = info.object_id
         obj_name = info.object_name
         if info.has_collided:
-            #print ("obj id",obj_id)
-            #print("obj id", obj_name)
+            # print ("obj id",obj_id)
+            # print("obj id", obj_name)
 
             if obj_name != self.prev_collision_name:
                 self.collision_counter += 1
@@ -175,15 +179,25 @@ class AirSimFacade:
         else:
             self.prev_collision_name = None
         return self.collision_counter
-    def teleport_to(self, x, y, z, text):
+
+    def teleport_to(self, x, y, z, text=None):
+        #pose_drone = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
+        #yaw = self.air_sim.to_eularian_angles(pose_drone.orientation)[2]
+        # pose = airsim.Pose(airsim.Vector3r(x*math.cos(yaw)*5, y*5*math.sin(yaw), z), airsim.to_quaternion(0, 0, yaw))  # PRY in radians
+        pose = self.air_sim.Pose(self.air_sim.Vector3r(x, y, z),
+                                 self.air_sim.to_quaternion(0, 0, 0))  # PRY in radians
+        self.client.simSetVehiclePose(pose, True)
+        self.client.rotateToYawAsync(180, vehicle_name=self.drone_name).join()
+        if text:
+            self.client.simPlotStrings(strings=[text], positions=[self.air_sim.Vector3r(x + 1, y, z)],
+                                       scale=10, color_rgba=[1.0, 0.0, 1.0, 1.0], duration=10.0)
+    def teleport_to(self, v):
         pose_drone = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
         yaw = self.air_sim.to_eularian_angles(pose_drone.orientation)[2]
         # pose = airsim.Pose(airsim.Vector3r(x*math.cos(yaw)*5, y*5*math.sin(yaw), z), airsim.to_quaternion(0, 0, yaw))  # PRY in radians
-        pose = self.air_sim.Pose(self.air_sim.Vector3r(x, y, z),
-                                 self.air_sim.to_quaternion(0, 0, yaw))  # PRY in radians
+        pose = self.air_sim.Pose(v,self.air_sim.to_quaternion(0, 0, yaw))  # PRY in radians
         self.client.simSetVehiclePose(pose, True)
-        self.client.simPlotStrings(strings=[text], positions=[self.air_sim.Vector3r(x + 1, y, z)],
-                                   scale=10, color_rgba=[1.0, 0.0, 1.0, 1.0], duration=10.0)
+
 
     def draw_path(self, sublist_of_vectors, style=""):
 
@@ -206,7 +220,7 @@ class AirSimFacade:
     def flush_persistent_markers(self):
         self.client.simFlushPersistentMarkers()
 
-# recording
+    # recording
     def start_recording(self):
         self.client.startRecording()
 

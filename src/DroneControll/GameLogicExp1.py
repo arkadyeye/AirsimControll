@@ -32,7 +32,10 @@ import time
 import PathApi
 
 from Logger import PostAnalyser
-from ExportData import ExportData
+
+import numpy as np
+import similaritymeasures
+from csv import reader
 
 
 class GameLogic:
@@ -42,7 +45,12 @@ class GameLogic:
     STAGE_MAIN_PATH = "main"
     STAGE_FREE_STYLE_1 = "free1"
     STAGE_FREE_STYLE_2 = "free2"
+
+    TIME_GAME_OVER = 300  # 300sec = 5 min
     # STAGE_FINISHED = "finished"
+    PATH_DRAW_AHEAD = 3
+
+    mark = 400
 
     game_stage = STAGE_NOT_IN_GAME
 
@@ -56,6 +64,8 @@ class GameLogic:
     list_of_path = []
     list_of_vectors = []
     list_of_vectors_noised = []
+    last_collected_waypoint = None
+    zero_vector = airsim.Vector3r(0, 0, 0)
 
     path_loaded = False
 
@@ -77,13 +87,39 @@ class GameLogic:
     time_train = 0
     time_main = 0
 
+    total_dist = 0
+    prev_point = None
+
     csv_header = ""
     csv_line = ""
 
+    # remember the x,y,z coordinates, so we can compare to optimal path layetr
+    a_x = []
+    a_y = []
+    a_z = []
+    counter = 0
+
+    optimal_short = None
+    optimal_Long = None
+
+    optimal_short_time = 32   # sec
+    optimal_long_time = 86   # sec
+
     def __init__(self, sim):
         self.sim = sim
+        self.optimal_short = self.load_optimal_path_data("SavedPaths\\optimal_short_5_path.csv")
+        self.optimal_long = self.load_optimal_path_data("SavedPaths\\optimal_long_5_path.csv")
 
     def start_game(self, user_name, age, gender, driving_lic, flying_exp, adhd):
+
+        self.last_collected_waypoint = None
+        self.mark = 400
+        self.total_dist = 0
+        self.a_x = []
+        self.a_y = []
+        self.a_z = []
+        self.counter = 0
+
         if self.game_stage == self.STAGE_NOT_IN_GAME:
             self.user_name = user_name
             self.age = age
@@ -96,7 +132,7 @@ class GameLogic:
             self.train_csv = self.pa
             self.sim.flush_persistent_markers()
             self.load_path_file("SavedPaths\\short_path.json")
-            self.sim.draw_path(self.list_of_vectors,style = "path")
+            self.sim.draw_path(self.list_of_vectors[0:self.PATH_DRAW_AHEAD], style="path")
             self.game_stage = self.STAGE_TRAINING
             self.sim.restart_training()
 
@@ -104,84 +140,152 @@ class GameLogic:
         self.sim.land()
         self.sim.flush_persistent_markers()
         self.time_finished = time.time()
-        delta_time = str(self.time_finished - self.time_started)
+        self.time_train = self.time_finished - self.time_started
         self.is_time_started = False
 
         # this should be exported to some pdf
-        print("delta time: " + delta_time)
+
+        self.sim.flush_persistent_markers()
+        self.pa.close()
+        print("training time - ", self.time_train)
+
+        self.last_collected_waypoint = None
+
+    def restart_training(self):
+        self.sim.flush_persistent_markers()
+        self.sim.restart_training()
 
         if self.game_stage == self.STAGE_TRAINING:
-            self.sim.flush_persistent_markers()
-            self.pa.close()
+            self.pa = PostAnalyser(self.user_name + "_training", self.csv_header)
+            self.load_path_file("SavedPaths\\short_path.json")
+            self.sim.draw_path(self.list_of_vectors[0:self.PATH_DRAW_AHEAD], style="path")
 
-            # finishe training, and load real path
-            self.time_train = delta_time
-            print("Line 104: training time - ", self.time_train)
-            easygui.msgbox("Yo have finished the Training\n Ready to start the real thing ?", "Path completed")
-
-            self.load_path_file("SavedPaths\\long_path.json")
-            self.sim.draw_path(self.list_of_vectors, style="path")
-
+        if self.game_stage == self.STAGE_MAIN_PATH:
             self.pa = PostAnalyser(self.user_name + "_real", self.csv_header)
-            self.game_stage = self.STAGE_MAIN_PATH
-            self.sim.restart_training()
+            self.load_path_file("SavedPaths\\long_path.json")
+            self.sim.draw_path(self.list_of_vectors[0:self.PATH_DRAW_AHEAD], style="path")
 
+        if self.game_stage == self.STAGE_FREE_STYLE_1:
+            self.pa = PostAnalyser(self.user_name + "_free1", self.csv_header)
+            self.load_path_file("SavedPaths\\free_style_waypoints.json")
+            self.sim.draw_path(self.list_of_vectors, style="free")
+
+        if self.game_stage == self.STAGE_FREE_STYLE_2:
+            self.pa = PostAnalyser(self.user_name + "_free2", self.csv_header)
+            self.load_path_file("SavedPaths\\free_style_waypoints.json")
+            self.sim.draw_path(self.list_of_vectors, style="free")
+
+        self.train_csv = self.pa
+
+        self.last_collected_waypoint = None
+        self.mark = 400
+        self.total_dist = 0
+        self.a_x = []
+        self.a_y = []
+        self.a_z = []
+        self.counter = 0
+
+    def advance_next_stage(self):
+
+        # here we should update pdf generator
+
+        # reduce for collisions
+
+        # calc ferchet distance
+        exp_data = np.zeros((self.counter, 3))
+        exp_data[:, 0] = self.a_x
+        exp_data[:, 1] = self.a_y
+        exp_data[:, 2] = self.a_z
+
+        if self.game_stage == self.STAGE_TRAINING:
+            self.mark = self.mark - self.sim.get_colisons_counter() * 10
+
+            df = similaritymeasures.frechet_dist(exp_data, self.optimal_short)
+            self.mark = self.mark - df
+
+            df_time = self.time_train - self.optimal_short_time
+            self.mark = self.mark - df_time
+
+            easygui.msgbox("Yo have done the stage \n collisions "+str(self.sim.get_colisons_counter())+" \n" +\
+                        "time:" +str(self.time_train) + " \n" + \
+                           "dist: "+str(self.total_dist)+ " \n" + \
+                           "fr.dist: " + str(df) + " \n" + \
+                           "total mark is: "+str(self.mark), "Path completed")
+
+            # finish training, and load real path
+            easygui.msgbox("Yo have finished the Training\n Ready to start the real thing ?", "Path completed")
+            self.game_stage = self.STAGE_MAIN_PATH
+            self.restart_training()
             return
 
         if self.game_stage == self.STAGE_MAIN_PATH:
-            self.sim.flush_persistent_markers()
-            self.pa.close()
+            self.mark = self.mark - self.sim.get_colisons_counter() * 10
 
-            # finishe training, and load real path
-            self.time_train = delta_time
-            print("training time - ", self.time_train)
+            df = similaritymeasures.frechet_dist(exp_data, self.optimal_long)
+            self.mark = self.mark - df
+
+            df_time = self.time_train - self.optimal_long_time
+            self.mark = self.mark - df_time
+
+            easygui.msgbox("Yo have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
+                           "time:" + str(self.time_train) + " \n" + \
+                           "dist: " + str(self.total_dist) + " \n" + \
+                           "fr.dist: " + str(df) + " \n" + \
+                           "total mark is: " + str(self.mark), "Path completed")
+
+
             easygui.msgbox("Now you have to find the objects on your own", "Path completed")
-
-            self.load_path_file("SavedPaths\\free_style_waypoints.json")
-            self.sim.draw_path(self.list_of_vectors, style="free")
-
-            self.pa = PostAnalyser(self.user_name + "_free1", self.csv_header)
             self.game_stage = self.STAGE_FREE_STYLE_1
-            self.sim.restart_training()
+            self.restart_training()
             return
 
-
-
         if self.game_stage == self.STAGE_FREE_STYLE_1:
-            self.sim.flush_persistent_markers()
-            self.pa.close()
+            self.mark = self.mark - self.sim.get_colisons_counter() * 10
+            easygui.msgbox("Yo have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
+                           "time:" + str(self.time_train) + " \n" + \
+                           "dist: " + str(self.total_dist) + " \n" + \
+                           "total mark is: " + str(self.mark), "Path completed")
 
-            # finishe training, and load real path
-            self.time_train = delta_time
-            print("training time - ", self.time_train)
             easygui.msgbox("Now you have to find the objects on your own", "Path completed")
-
-            self.load_path_file("SavedPaths\\free_style_waypoints.json")
-            self.sim.draw_path(self.list_of_vectors, style="free")
-
-            self.pa = PostAnalyser(self.user_name + "_free2", self.csv_header)
             self.game_stage = self.STAGE_FREE_STYLE_2
-            self.sim.restart_training()
+            self.restart_training()
             return
 
         if self.game_stage == self.STAGE_FREE_STYLE_2:
-            self.sim.flush_persistent_markers()
-            self.pa.close()
+            self.mark = self.mark - self.sim.get_colisons_counter() * 10
+            easygui.msgbox("Yo have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
+                           "time:" + str(self.time_train) + " \n" + \
+                           "dist: " + str(self.total_dist) + " \n" + \
+                           "total mark is: " + str(self.mark), "Path completed")
 
-            # finishe training, and load real path
-            self.time_train = delta_time
-            print("training time - ", self.time_train)
             easygui.msgbox("You have done perfectly ! thanks for your time", "Path completed")
 
             # Insert here Comparator Function
-            #parameters = (self.user_name, self.age, self.gender, self.driving_license,
+            # parameters = (self.user_name, self.age, self.gender, self.driving_license,
             #              self.flying_experience, self.adhd, self.time_train, self.time_finished)
-            #exp_dataa = ExportData()
-            #exp_dataa.exp_data(parameters)
+            # exp_dataa = ExportData()
+            # exp_dataa.exp_data(parameters)
 
-            self.game_stage == self.STAGE_NOT_IN_GAME
+            self.game_stage = self.STAGE_NOT_IN_GAME
 
             return
+
+
+
+    def escape_position(self):  # this function should take you out of a problematic position
+        if self.game_stage == self.STAGE_NOT_IN_GAME:
+            return
+
+        self.mark = self.mark - 50
+
+        if self.game_stage == self.STAGE_TRAINING or self.game_stage == self.STAGE_MAIN_PATH:
+            if self.last_collected_waypoint is None:
+                self.sim.teleport_to(self.zero_vector)
+            else:
+                self.sim.teleport_to(self.last_collected_waypoint)
+
+        if self.game_stage == self.STAGE_FREE_STYLE_1 or self.game_stage == self.STAGE_FREE_STYLE_2:
+            self.sim.teleport_to(self.zero_vector)
 
     def update(self):
 
@@ -202,61 +306,91 @@ class GameLogic:
             self.time_started = time.time()
             self.is_time_started = True
             self.csv_line = ""
+            self.prev_point = self.sim.get_position_vector()
             print("time started")
 
         # update path drawing
         if not self.is_time_started:
             return
 
+        # check if time ended
+        if time.time() - self.time_started > self.TIME_GAME_OVER:
+            self.finish_path()
+            result = easygui.ynbox("5 minutes is over, do you want to restart teh game (yes) \n or abandon it (no) ?",
+                                   "time up")
+            if result:  # means yes
+                self.finish_path()
+                self.restart_training()
+                self.time_started = time.time()
+            else:
+                self.finish_path()
+                self.game_stage = self.STAGE_NOT_IN_GAME
+                return
+
         # update performance analyzer
-        self.pa.add_pose(self.sim.get_position_by_pose(pose))
+        pow_tuple = self.sim.get_position_by_pose(pose)
+        self.pa.add_pose(pow_tuple)
         self.pa.add_collision(self.sim.get_colisons_counter())
         self.pa.add_csv_data(self.csv_line)
         self.pa.write_full_line()
         self.csv_line = ""
 
+        self.a_x.append(pow_tuple[0])
+        self.a_y.append(pow_tuple[1])
+        self.a_z.append(pow_tuple[2])
+        self.counter += 1
+
+        self.total_dist = self.total_dist + pose.position.distance_to(self.prev_point)
+        self.prev_point = self.sim.get_position_vector()
+
         if self.game_stage == self.STAGE_TRAINING or self.game_stage == self.STAGE_MAIN_PATH:
             # update path drawing (remove already passed cubes)
             dist = pose.position.distance_to(self.list_of_vectors[self.target_on_path_index])
             if dist < self.EPSILON and self.target_on_path_index + 1 < len(self.list_of_vectors):
+
+                # save colleted waypoit
+                self.last_collected_waypoint = self.list_of_vectors[self.target_on_path_index]
+
                 # increment node on path index
                 self.target_on_path_index = self.target_on_path_index + 1
 
                 # calculate new, shorted, path
-                sublist_of_vectors = self.list_of_vectors[self.target_on_path_index:self.target_on_path_index + 3]
-                self.sim.draw_path(sublist_of_vectors,"path")
+                sublist_of_vectors = self.list_of_vectors[self.target_on_path_index:self.target_on_path_index + self.PATH_DRAW_AHEAD]
+                self.sim.draw_path(sublist_of_vectors, "path")
 
                 # check if experiment ended
                 if len(sublist_of_vectors) <= 1:
                     self.finish_path()
+                    self.advance_next_stage()
 
         if self.game_stage == self.STAGE_FREE_STYLE_1 or self.game_stage == self.STAGE_FREE_STYLE_2:
 
             '''
             the logic here should be like this:
             we have a collection of waypoint (relativly small,max 10).
-            check if we are close enoth to at least one of them.
+            check if we are close enouth to at least one of them.
             if do: remove it from the list (and display)
             
             the stage end when there is no waypoints left
             '''
 
             # update path drawing (remove already passed cubes)
+            print("len: ", len(self.list_of_vectors))
 
             for i in range(0, len(self.list_of_vectors)):
                 dist = pose.position.distance_to(self.list_of_vectors[i])
-                if dist < self.EPSILON*2:
+                if dist < self.EPSILON * 2:
                     # remove element at I
                     del self.list_of_vectors[i]
                     self.sim.draw_path(self.list_of_vectors, style="free")
                     break
 
+
+
             # check if experiment ended
             if len(self.list_of_vectors) == 0:
                 self.finish_path()
-
-
-
+                self.advance_next_stage()
 
     def addCsvHeader(self, csv_header):
         self.csv_header = self.csv_header + "," + csv_header
@@ -291,7 +425,32 @@ class GameLogic:
         self.target_on_path_index = 0
 
         # load path to world
-        #self.sim.draw_path(self.list_of_vectors)
+        # self.sim.draw_path(self.list_of_vectors)
 
         # set loaded flag
         self.is_path_loaded = True
+
+    def load_optimal_path_data(self,path):
+        in_x = []
+        in_y = []
+        in_z = []
+        in_counter = 0
+        with open(path, 'r') as read_obj:
+            # pass the file object to reader() to get the reader object
+            csv_reader = reader(read_obj)
+            header = next(csv_reader)
+            header = next(csv_reader)
+            # Iterate over each row in the csv using reader object
+            for row in csv_reader:
+                # row variable is a list that represents a row in csv
+                # print(row)
+                in_x.append(row[1])
+                in_y.append(row[2])
+                in_z.append(row[3])
+                in_counter += 1
+
+        ref_data = np.zeros((in_counter, 3))
+        ref_data[:, 0] = in_x
+        ref_data[:, 1] = in_y
+        ref_data[:, 2] = in_z
+        return ref_data

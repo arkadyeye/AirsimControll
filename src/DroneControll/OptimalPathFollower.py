@@ -450,7 +450,7 @@ from time import sleep
 
 
 print ("here we start")
-json_name = "long_path.json"
+json_name = "short_path.json"
 onPathSpeed = 5
 continue_flag = True
 init()
@@ -490,6 +490,8 @@ while continue_flag:
     if state == 2 and dist < EPSILON:
         continue_flag = False
         print ("path end")
+
+    pa.write_full_line()
 
 pa.close()
 

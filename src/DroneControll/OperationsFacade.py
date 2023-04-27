@@ -5,7 +5,6 @@ import easygui
 
 import GameLogicExp1
 
-
 '''
 this class should be devided in game logic, keyboard controller, and path maker
 maybe the path maker and game logic should be the same for now
@@ -44,13 +43,14 @@ This class controls the path adding:
         where to save 
 """
 
+
 class OperationsFacade():
 
     def start_path(self, pygame, sim, pathapi, gamelogic):
         # EVENT PROCESSING STEP
         for event in pygame.event.get():  # User did something
             if event.type == pygame.QUIT:  # If user clicked close
-                pygame.quit() # breaks the loop so the gui can be closed
+                pygame.quit()  # breaks the loop so the gui can be closed
 
             # Possible joystick actions: JOYAXISMOTION JOYBALLMOTION JOYBUTTONDOWN JOYBUTTONUP JOYHATMOTION
             if event.type == pygame.JOYBUTTONDOWN:
@@ -67,6 +67,10 @@ class OperationsFacade():
                 if event.key == pygame.K_x:
                     sim.stop_recording()
 
+                if event.key == pygame.K_r:
+                    print("Key R has been pressed")
+                    gamelogic.escape_position()
+
                 # checking if key "N" was pressed
                 if event.key == pygame.K_n:
                     print("Key N has been pressed")
@@ -77,7 +81,7 @@ class OperationsFacade():
                     flying_experience = easygui.enterbox("Do you have any flight experience?", "New Experiment setup")
                     adhd = easygui.enterbox("Do you have ADHD or similar?", "New Experiment setup")
                     print("user name is:", user_name)
-                    gamelogic.start_game(user_name,age,gender,driving_license,flying_experience,adhd)
+                    gamelogic.start_game(user_name, age, gender, driving_license, flying_experience, adhd)
                     # here we should load the easypath. or maybe call to
                     # some experiment controller.start()
 
@@ -104,7 +108,6 @@ class OperationsFacade():
                 if event.key == pygame.K_SPACE:
                     sim.abort_automation()
 
-
     # def add_to_path(self, sim):
     #     list_of_path.append(sim.get_position())
     #     list_of_vectors.append(sim.get_position_vector())
@@ -128,7 +131,7 @@ class OperationsFacade():
 
         ts = time.time()
         str_timestamp = str(ts)
-        with open("SavedPaths/" + str_timestamp[0:9]+".json", 'w', encoding='utf-8') as f:
+        with open("SavedPaths/" + str_timestamp[0:9] + ".json", 'w', encoding='utf-8') as f:
             json.dump(list_of_path, f)
 
     def load_path_from_json(self, sim):
@@ -177,7 +180,7 @@ class OperationsFacade():
         sublist_of_vectors = list_of_vectors[target_on_path_index]
         sublist_of_vectors_noised = list_of_vectors_noised[target_on_path_index:]
         sim.client.simPlotPoints(points=sublist_of_vectors,
-                             color_rgba=[1.0, 0.0, 0.0, 1.0], size=25, duration=0.5, is_persistent=False)
+                                 color_rgba=[1.0, 0.0, 0.0, 1.0], size=25, duration=0.5, is_persistent=False)
 
         sim.client.simPlotLineStrip(
             points=sublist_of_vectors,
@@ -185,9 +188,8 @@ class OperationsFacade():
 
         if debug_mode:
             sim.client.simPlotPoints(points=sublist_of_vectors_noised,
-                                 color_rgba=[0.0, 0.0, 1.0, 1.0], size=25, duration=0.1, is_persistent=False)
+                                     color_rgba=[0.0, 0.0, 1.0, 1.0], size=25, duration=0.1, is_persistent=False)
 
             sim.client.simPlotLineStrip(
                 points=sublist_of_vectors_noised,
                 color_rgba=[0.0, 0.0, 1.0, 0.0], thickness=5, duration=0.1, is_persistent=False)
-
