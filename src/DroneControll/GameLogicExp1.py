@@ -42,6 +42,8 @@ class GameLogic:
     STAGE_MAIN_PATH = "main"
     STAGE_FREE_STYLE_1 = "free1"
     STAGE_FREE_STYLE_2 = "free2"
+
+    TIME_GAME_OVER = 180 # 300sec = 5 min
     # STAGE_FINISHED = "finished"
 
     game_stage = STAGE_NOT_IN_GAME
@@ -56,6 +58,8 @@ class GameLogic:
     list_of_path = []
     list_of_vectors = []
     list_of_vectors_noised = []
+    last_collected_waypoint = None
+    zero_vector = airsim.Vector3r(0, 0, 0)
 
     path_loaded = False
 
@@ -110,78 +114,90 @@ class GameLogic:
         # this should be exported to some pdf
         print("delta time: " + delta_time)
 
+        self.sim.flush_persistent_markers()
+        self.pa.close()
+        self.time_train = delta_time
+        print("training time - ", self.time_train)
+
+        self.last_collected_waypoint = None
+
+
+    def restart_training(self):
+        self.sim.flush_persistent_markers()
+
         if self.game_stage == self.STAGE_TRAINING:
-            self.sim.flush_persistent_markers()
-            self.pa.close()
+            self.pa = PostAnalyser(self.user_name + "_training", self.csv_header)
+            self.load_path_file("SavedPaths\\short_path.json")
+            self.sim.draw_path(self.list_of_vectors, style="path")
 
-            # finishe training, and load real path
-            self.time_train = delta_time
-            print("Line 104: training time - ", self.time_train)
-            easygui.msgbox("Yo have finished the Training\n Ready to start the real thing ?", "Path completed")
-
+        if self.game_stage == self.STAGE_MAIN_PATH:
+            self.pa = PostAnalyser(self.user_name + "_real", self.csv_header)
             self.load_path_file("SavedPaths\\long_path.json")
             self.sim.draw_path(self.list_of_vectors, style="path")
 
-            self.pa = PostAnalyser(self.user_name + "_real", self.csv_header)
-            self.game_stage = self.STAGE_MAIN_PATH
-            self.sim.restart_training()
+        if self.game_stage == self.STAGE_FREE_STYLE_1:
+            self.pa = PostAnalyser(self.user_name + "_free1", self.csv_header)
+            self.load_path_file("SavedPaths\\free_style_waypoints.json")
+            self.sim.draw_path(self.list_of_vectors, style="free")
 
+        if self.game_stage == self.STAGE_FREE_STYLE_2:
+            self.pa = PostAnalyser(self.user_name + "_free2", self.csv_header)
+            self.load_path_file("SavedPaths\\free_style_waypoints.json")
+            self.sim.draw_path(self.list_of_vectors, style="free")
+
+
+        self.train_csv = self.pa
+        self.sim.restart_training()
+
+        self.last_collected_waypoint = None
+
+
+    def advance_next_stage(self):
+
+        if self.game_stage == self.STAGE_TRAINING:
+            # finish training, and load real path
+            easygui.msgbox("Yo have finished the Training\n Ready to start the real thing ?", "Path completed")
+            self.game_stage = self.STAGE_MAIN_PATH
+            self.restart_training()
             return
 
         if self.game_stage == self.STAGE_MAIN_PATH:
-            self.sim.flush_persistent_markers()
-            self.pa.close()
-
-            # finishe training, and load real path
-            self.time_train = delta_time
-            print("training time - ", self.time_train)
             easygui.msgbox("Now you have to find the objects on your own", "Path completed")
-
-            self.load_path_file("SavedPaths\\free_style_waypoints.json")
-            self.sim.draw_path(self.list_of_vectors, style="free")
-
-            self.pa = PostAnalyser(self.user_name + "_free1", self.csv_header)
             self.game_stage = self.STAGE_FREE_STYLE_1
-            self.sim.restart_training()
+            self.restart_training()
             return
 
-
-
         if self.game_stage == self.STAGE_FREE_STYLE_1:
-            self.sim.flush_persistent_markers()
-            self.pa.close()
-
-            # finishe training, and load real path
-            self.time_train = delta_time
-            print("training time - ", self.time_train)
             easygui.msgbox("Now you have to find the objects on your own", "Path completed")
-
-            self.load_path_file("SavedPaths\\free_style_waypoints.json")
-            self.sim.draw_path(self.list_of_vectors, style="free")
-
-            self.pa = PostAnalyser(self.user_name + "_free2", self.csv_header)
             self.game_stage = self.STAGE_FREE_STYLE_2
-            self.sim.restart_training()
+            self.restart_training()
             return
 
         if self.game_stage == self.STAGE_FREE_STYLE_2:
-            self.sim.flush_persistent_markers()
-            self.pa.close()
-
-            # finishe training, and load real path
-            self.time_train = delta_time
-            print("training time - ", self.time_train)
             easygui.msgbox("You have done perfectly ! thanks for your time", "Path completed")
 
             # Insert here Comparator Function
-            #parameters = (self.user_name, self.age, self.gender, self.driving_license,
+            # parameters = (self.user_name, self.age, self.gender, self.driving_license,
             #              self.flying_experience, self.adhd, self.time_train, self.time_finished)
-            #exp_dataa = ExportData()
-            #exp_dataa.exp_data(parameters)
+            # exp_dataa = ExportData()
+            # exp_dataa.exp_data(parameters)
 
             self.game_stage = self.STAGE_NOT_IN_GAME
 
             return
+
+
+    def escape_position(self): #this function should take you out of a problematic position
+        if self.game_stage == self.STAGE_NOT_IN_GAME:
+            return
+        if self.game_stage == self.STAGE_TRAINING or self.game_stage == self.STAGE_MAIN_PATH:
+            if self.last_collected_waypoint is None:
+                self.sim.teleport_to(self.zero_vector)
+            else:
+                self.sim.teleport_to(self.last_collected_waypoint)
+
+        if self.game_stage == self.STAGE_FREE_STYLE_1 or self.game_stage == self.STAGE_FREE_STYLE_2:
+            self.sim.teleport_to(self.zero_vector)
 
     def update(self):
 
@@ -208,6 +224,20 @@ class GameLogic:
         if not self.is_time_started:
             return
 
+
+        # check if time ended
+        if time.time() - self.time_started > self.TIME_GAME_OVER:
+            self.finish_path()
+            result = easygui.ynbox("5 minutes is over, do you want to restart teh game (yes) \n or abadon it (no) ?","time up")
+            if result : # means yes
+                self.finish_path()
+                self.restart_training()
+                self.time_started = time.time()
+            else:
+                self.finish_path()
+                self.game_stage = self.STAGE_NOT_IN_GAME
+                return
+
         # update performance analyzer
         self.pa.add_pose(self.sim.get_position_by_pose(pose))
         self.pa.add_collision(self.sim.get_colisons_counter())
@@ -219,6 +249,10 @@ class GameLogic:
             # update path drawing (remove already passed cubes)
             dist = pose.position.distance_to(self.list_of_vectors[self.target_on_path_index])
             if dist < self.EPSILON and self.target_on_path_index + 1 < len(self.list_of_vectors):
+
+                # save colleted waypoit
+                self.last_collected_waypoint = self.list_of_vectors[self.target_on_path_index]
+
                 # increment node on path index
                 self.target_on_path_index = self.target_on_path_index + 1
 
@@ -229,6 +263,7 @@ class GameLogic:
                 # check if experiment ended
                 if len(sublist_of_vectors) <= 1:
                     self.finish_path()
+                    self.advance_next_stage()
 
         if self.game_stage == self.STAGE_FREE_STYLE_1 or self.game_stage == self.STAGE_FREE_STYLE_2:
 
@@ -254,6 +289,7 @@ class GameLogic:
             # check if experiment ended
             if len(self.list_of_vectors) == 0:
                 self.finish_path()
+                self.advance_next_stage()
 
 
 
