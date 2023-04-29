@@ -1,10 +1,8 @@
 # importing modules
+import csv
 import datetime
 
-from reportlab.pdfgen import canvas
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
-from reportlab.lib import colors
+from PIL import Image, ImageDraw
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.lib import colors
@@ -81,7 +79,7 @@ class PDFMaker:
         self.starting_time = start_time
         self.distance = distance
 
-    # update current phase -> save current time and stats -> reset timer
+    # At the end of each phase -> use function -> save current time and stats -> reset timer
     def update_phase(self, num, current_map):
         if num == 1:
             self.current_phase = 1
@@ -113,9 +111,43 @@ class PDFMaker:
             self.free_style_2_map = current_map
             self.reset_timer()
 
+    def map_plotter(image_path, coordinates_path):
+        # Load the image
+        # image_path = "map_v2.png"
+        image = Image.open(image_path)
+
+        # OPTION A -
+        # Load the coordinates
+        # coordinates = [(100, 200), (300, 400), (500, 600)]
+
+        # OPTION B -
+        # # Load the coordinates from a CSV file
+        coordinates = []
+        with open(str(coordinates_path)) as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                coordinates.append((int(row[0]), int(row[1])))
+
+        # Draw red points on the image with the given coordinates
+        draw = ImageDraw.Draw(image)
+        point_size = 13
+        for coord in coordinates:
+            draw.ellipse((coord[0] - point_size, coord[1] - point_size, coord[0] + point_size, coord[1] + point_size),
+                         fill="red")
+
+        # Save the image with the red points drawn
+        # output_path = "output.png"
+        # image.save(output_path)
+        return image
+
     def generate_pdf(self):
         # initializing variables with values
         file_name = str(self.id_number) + '_' + str(self.date_today) + '.pdf'
+        # Each image[1..4] turns the input CSV to a plotted image
+        # image1 = self.map_plotter(self.training_map)
+        # image2 = self.map_plotter(self.real_map)
+        # image3 = self.map_plotter(self.free_style_1_map)
+        # image4 = self.map_plotter(self.free_style_2_map)
         # Define the data for the subtitles and images
         data = {
             'date': str(self.date_today),
