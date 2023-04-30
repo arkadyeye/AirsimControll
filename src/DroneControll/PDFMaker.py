@@ -111,29 +111,31 @@ class PDFMaker:
             self.free_style_2_map = current_map
             self.reset_timer()
 
-    def map_plotter(image_path, coordinates_path):
+    def map_plotter(self, image_path, coordinates_path, color):
         # Load the image
         # image_path = "map_v2.png"
         image = Image.open(image_path)
 
         # OPTION A -
         # Load the coordinates
-        # coordinates = [(100, 200), (300, 400), (500, 600)]
+        # coordinates = [(500, 500)]
 
         # OPTION B -
-        # # Load the coordinates from a CSV file
+        # Load the coordinates from a CSV file
         coordinates = []
         with open(str(coordinates_path)) as csvfile:
-            reader = csv.reader(csvfile)
+            reader = csv.DictReader(csvfile)
             for row in reader:
-                coordinates.append((int(row[0]), int(row[1])))
+                x = 500 + int(float(row["x"])) * 500 / 127
+                y = 500 + int(float(row["y"])) * 500 / 127
+                coordinates.append((x, y))
 
         # Draw red points on the image with the given coordinates
         draw = ImageDraw.Draw(image)
-        point_size = 13
+        point_size = 3
         for coord in coordinates:
             draw.ellipse((coord[0] - point_size, coord[1] - point_size, coord[0] + point_size, coord[1] + point_size),
-                         fill="red")
+                         fill=str(color))
 
         # Save the image with the red points drawn
         # output_path = "output.png"
@@ -144,10 +146,10 @@ class PDFMaker:
         # initializing variables with values
         file_name = str(self.id_number) + '_' + str(self.date_today) + '.pdf'
         # Each image[1..4] turns the input CSV to a plotted image
-        # image1 = self.map_plotter(self.training_map)
-        # image2 = self.map_plotter(self.real_map)
-        # image3 = self.map_plotter(self.free_style_1_map)
-        # image4 = self.map_plotter(self.free_style_2_map)
+        # image1 = self.map_plotter("map_v2.png", self.training_map, PICK_A_COLOR)
+        # image2 = self.map_plotter("map_v2.png", self.real_map, PICK_A_COLOR)
+        # image3 = self.map_plotter("map_v2.png", self.free_style_1_map, PICK_A_COLOR)
+        # image4 = self.map_plotter("map_v2.png", self.free_style_2_map, PICK_A_COLOR)
         # Define the data for the subtitles and images
         data = {
             'date': str(self.date_today),
