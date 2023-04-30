@@ -110,8 +110,8 @@ class AirSimFacade:
         vy = self.drone_speed * math.sin(yaw_drone) + self.horizontal_speed * -math.cos(yaw_drone)
 
 
-        print ("yaw drone: ",math.degrees(yaw_drone))
-        print ("camera heading",self.camera_heading)
+        #print ("yaw drone: ",math.degrees(yaw_drone))
+        #print ("camera heading",self.camera_heading)
 
         # high_drone = client.simGetVehiclePose(vehicle_name="Drone0").position.z_val
         # if abs(vertical_position - high_drone) < 0.2:
