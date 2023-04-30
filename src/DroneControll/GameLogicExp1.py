@@ -102,8 +102,8 @@ class GameLogic:
     optimal_short = None
     optimal_Long = None
 
-    optimal_short_time = 32   # sec
-    optimal_long_time = 86   # sec
+    optimal_short_time = 32  # sec
+    optimal_long_time = 86  # sec
 
     def __init__(self, sim):
         self.sim = sim
@@ -120,21 +120,24 @@ class GameLogic:
         self.a_z = []
         self.counter = 0
 
-        if self.game_stage == self.STAGE_NOT_IN_GAME:
-            self.user_name = user_name
-            self.age = age
-            self.gender = gender
-            self.driving_license = driving_lic
-            self.flying_experience = flying_exp
-            self.adhd = adhd
+        if self.pa != None:
+            self.pa.close()
 
-            self.pa = PostAnalyser(user_name + "_training", self.csv_header)
-            self.train_csv = self.pa
-            self.sim.flush_persistent_markers()
-            self.load_path_file("SavedPaths\\short_path.json")
-            self.sim.draw_path(self.list_of_vectors[0:self.PATH_DRAW_AHEAD], style="path")
-            self.game_stage = self.STAGE_TRAINING
-            self.sim.restart_training()
+        #if self.game_stage == self.STAGE_NOT_IN_GAME:
+        self.user_name = user_name
+        self.age = age
+        self.gender = gender
+        self.driving_license = driving_lic
+        self.flying_experience = flying_exp
+        self.adhd = adhd
+
+        self.pa = PostAnalyser(user_name + "_training", self.csv_header)
+        self.train_csv = self.pa
+        self.sim.flush_persistent_markers()
+        self.load_path_file("SavedPaths\\short_path.json")
+        self.sim.draw_path(self.list_of_vectors[0:self.PATH_DRAW_AHEAD], style="path")
+        self.game_stage = self.STAGE_TRAINING
+        self.sim.restart_training()
 
     def finish_path(self):
         self.sim.land()
@@ -206,11 +209,11 @@ class GameLogic:
             df_time = self.time_train - self.optimal_short_time
             self.mark = self.mark - df_time
 
-            easygui.msgbox("Yo have done the stage \n collisions "+str(self.sim.get_colisons_counter())+" \n" +\
-                        "time:" +str(self.time_train) + " \n" + \
-                           "dist: "+str(self.total_dist)+ " \n" + \
+            easygui.msgbox("Yo have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
+                           "time:" + str(self.time_train) + " \n" + \
+                           "dist: " + str(self.total_dist) + " \n" + \
                            "fr.dist: " + str(df) + " \n" + \
-                           "total mark is: "+str(self.mark), "Path completed")
+                           "total mark is: " + str(self.mark), "Path completed")
 
             # finish training, and load real path
             easygui.msgbox("Yo have finished the Training\n Ready to start the real thing ?", "Path completed")
@@ -232,7 +235,6 @@ class GameLogic:
                            "dist: " + str(self.total_dist) + " \n" + \
                            "fr.dist: " + str(df) + " \n" + \
                            "total mark is: " + str(self.mark), "Path completed")
-
 
             easygui.msgbox("Now you have to find the objects on your own", "Path completed")
             self.game_stage = self.STAGE_FREE_STYLE_1
@@ -269,8 +271,6 @@ class GameLogic:
             self.game_stage = self.STAGE_NOT_IN_GAME
 
             return
-
-
 
     def escape_position(self):  # this function should take you out of a problematic position
         if self.game_stage == self.STAGE_NOT_IN_GAME:
@@ -355,7 +355,8 @@ class GameLogic:
                 self.target_on_path_index = self.target_on_path_index + 1
 
                 # calculate new, shorted, path
-                sublist_of_vectors = self.list_of_vectors[self.target_on_path_index:self.target_on_path_index + self.PATH_DRAW_AHEAD]
+                sublist_of_vectors = self.list_of_vectors[
+                                     self.target_on_path_index:self.target_on_path_index + self.PATH_DRAW_AHEAD]
                 self.sim.draw_path(sublist_of_vectors, "path")
 
                 # check if experiment ended
@@ -384,8 +385,6 @@ class GameLogic:
                     del self.list_of_vectors[i]
                     self.sim.draw_path(self.list_of_vectors, style="free")
                     break
-
-
 
             # check if experiment ended
             if len(self.list_of_vectors) == 0:
@@ -430,7 +429,7 @@ class GameLogic:
         # set loaded flag
         self.is_path_loaded = True
 
-    def load_optimal_path_data(self,path):
+    def load_optimal_path_data(self, path):
         in_x = []
         in_y = []
         in_z = []

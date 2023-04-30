@@ -90,36 +90,28 @@ class AirSimFacade:
         print("drone yaw ", yaw)
         pose = airsim.Pose(airsim.Vector3r(0, 0, 0), airsim.to_quaternion(0, 0, 0))  # PRY in radians
         self.client.simSetVehiclePose(pose, True)
+        self.camera_heading = 180
         self.client.rotateToYawAsync(180, vehicle_name=self.drone_name).join()
         self.automatic_mode = False
 
     def update_loop(self):
 
-        # global client
-
-        # not sure that this function call should be here
-        # but it's like in a big update loop
-        # update_visible_path()
-
-        # skip drone update on automatic motion
-        # global automatic_mode
-        # global target_on_path_index
-        # global target_on_path
 
         # we should always track location on path. both in hand and automated mode
 
         if self.automatic_mode:
             return
 
-        # global vertical_position
-        # global horizontal_speed
-        # global camera_heading
-        # global drone_speed
+
 
         yaw_drone = self.air_sim.to_eularian_angles(self.client.getMultirotorState().kinematics_estimated.orientation)[
             2]
         vx = self.drone_speed * math.cos(yaw_drone) + self.horizontal_speed * math.sin(yaw_drone)
         vy = self.drone_speed * math.sin(yaw_drone) + self.horizontal_speed * -math.cos(yaw_drone)
+
+
+        print ("yaw drone: ",math.degrees(yaw_drone))
+        print ("camera heading",self.camera_heading)
 
         # high_drone = client.simGetVehiclePose(vehicle_name="Drone0").position.z_val
         # if abs(vertical_position - high_drone) < 0.2:
@@ -184,6 +176,9 @@ class AirSimFacade:
         #pose_drone = self.client.simGetVehiclePose(vehicle_name=self.drone_name)
         #yaw = self.air_sim.to_eularian_angles(pose_drone.orientation)[2]
         # pose = airsim.Pose(airsim.Vector3r(x*math.cos(yaw)*5, y*5*math.sin(yaw), z), airsim.to_quaternion(0, 0, yaw))  # PRY in radians
+
+        self.camera_heading = 180
+
         pose = self.air_sim.Pose(self.air_sim.Vector3r(x, y, z),
                                  self.air_sim.to_quaternion(0, 0, 0))  # PRY in radians
         self.client.simSetVehiclePose(pose, True)
