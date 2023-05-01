@@ -2,13 +2,15 @@
 import csv
 import datetime
 
-from PIL import Image, ImageDraw
-from reportlab.lib.pagesizes import letter
+from PIL import ImageDraw
+import PIL.Image as PilImage
+from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.units import inch
 from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_LEFT
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+from datetime import datetime
 
 '''
 Option one - ugly function
@@ -31,42 +33,53 @@ Option two - object
 
 
 class PDFMaker:
+    STAGE_NOT_IN_GAME = "not_in_game"
+    STAGE_TRAINING = "training"
+    STAGE_MAIN_PATH = "main"
+    STAGE_FREE_STYLE_1 = "free1"
+    STAGE_FREE_STYLE_2 = "free2"
+
     time_spent = 0
     starting_time = 0
     distance = 0
     f_dist = 0
     difference_between_tracks = 0
-    date_today = datetime.datetime.now().date()
+    date_today = "{:%Y:%m:%d %H:%M}".format(datetime.now())
     current_phase = 0
 
     # Training phase
     train_time = 0
     train_dist = 0
     train_f_dist = 0
-    training_map = None  # Map - list of csv
 
     # Real phase
     real_time = 0
     real_dist = 0
     real_f_dist = 0
-    real_map = None  # Map - list of csv
 
     # Freestyle 1 phase
     frees1_time = 0
     frees1_dist = 0
-    free_style_1_map = None  # Map - list of csv
 
     # Freestyle 2 phase
     frees2_time = 0
     frees2_dist = 0
-    free_style_2_map = None  # Map - list of csv
 
-    def __init__(self, id_number, name, has_license, adhd, has_flight_experience):
-        self.id_number = id_number
-        self.name = name
+    def __init__(self, folder_name, user_name, age, gender, has_license, has_flight_experience, adhd):
+
+        self.folder_name = folder_name
+        self.free_style_2_path = None
+        self.free_style_1_path = None
+        self.real_user_path = None
+        self.train_user_path = None
+        self.real_optimal_path = None
+        self.train_optimal_path = None
+        self.id_number = user_name
+        self.age = age
+        self.gender = gender
         self.has_license = has_license
-        self.adhd = adhd
         self.has_flight_experience = has_flight_experience
+        self.adhd = adhd
 
     # reset the current distances and times
     def reset_timer(self):
@@ -80,85 +93,88 @@ class PDFMaker:
         self.distance = distance
 
     # At the end of each phase -> use function -> save current time and stats -> reset timer
-    def update_phase(self, num, current_map):
-        if num == 1:
-            self.current_phase = 1
-            self.train_time = self.time_spent
-            self.train_dist = self.distance
-            self.train_f_dist = self.f_dist
-            self.training_map = current_map
+    def update_phase(self, stage, time, distance, fr_distance, optimal_path, user_path):
+        if stage == self.STAGE_TRAINING:
+            # self.current_phase = 1
+            self.train_time = time
+            self.train_dist = distance
+            self.train_f_dist = fr_distance
+            self.train_optimal_path = optimal_path
+            self.train_user_path = user_path
             self.reset_timer()
 
-        if num == 2:
-            self.current_phase = 2
-            self.real_time = self.time_spent
-            self.real_dist = self.distance
-            self.real_f_dist = self.f_dist
-            self.real_map = current_map
+        if stage == self.STAGE_MAIN_PATH:
+            # self.current_phase = 2
+            self.real_time = time
+            self.real_dist = distance
+            self.real_f_dist = fr_distance
+            self.real_optimal_path = optimal_path
+            self.real_user_path = user_path
             self.reset_timer()
 
-        if num == 3:
-            self.current_phase = 3
-            self.frees1_time = self.time_spent
-            self.frees1_dist = self.time_spent
-            self.free_style_1_map = current_map
+        if stage == self.STAGE_FREE_STYLE_1:
+            # self.current_phase = 3
+            self.frees1_time = time
+            self.frees1_dist = distance
+            self.free_style_1_path = user_path
             self.reset_timer()
 
-        if num == 4:
-            self.current_phase = 4
-            self.frees2_time = self.time_spent
-            self.frees2_dist = self.time_spent
-            self.free_style_2_map = current_map
+        if stage == self.STAGE_FREE_STYLE_2:
+            # self.current_phase = 4
+            self.frees2_time = time
+            self.frees2_dist = distance
+            self.free_style_2_path = user_path
             self.reset_timer()
 
-    def map_plotter(self, image_path, coordinates_path, color):
+    def map_plotter(self, stage, user_path, optimal_path):
         # Load the image
-        # image_path = "map_v2.png"
-        image = Image.open(image_path)
-
-        # OPTION A -
-        # Load the coordinates
-        # coordinates = [(500, 500)]
-
-        # OPTION B -
-        # Load the coordinates from a CSV file
-        coordinates = []
-        with open(str(coordinates_path)) as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                x = 500 + int(float(row["x"])) * 500 / 127
-                y = 500 + int(float(row["y"])) * 500 / 127
-                coordinates.append((x, y))
+        image_path = "SavedPaths//map_v2.png"
+        image = PilImage.open(image_path)
 
         # Draw red points on the image with the given coordinates
         draw = ImageDraw.Draw(image)
-        point_size = 3
-        for coord in coordinates:
-            draw.ellipse((coord[0] - point_size, coord[1] - point_size, coord[0] + point_size, coord[1] + point_size),
-                         fill=str(color))
+
+        if optimal_path is not None:
+            point_size = 7
+            for i in range(1, len(optimal_path)):
+                x = 500 + optimal_path[i][0] * 500 / 127
+                y = 500 + optimal_path[i][1] * 500 / 127
+
+                draw.ellipse((x - point_size, y - point_size, x + point_size, y + point_size),
+                             fill=str("orange"))
+
+        if user_path is not None:
+            point_size = 3
+            for i in range(1, len(user_path)):
+                x = 500 + user_path[i][0] * 500 / 127
+                y = 500 + user_path[i][1] * 500 / 127
+
+                draw.ellipse((x - point_size, y - point_size, x + point_size, y + point_size),
+                             fill=str("blue"))
 
         # Save the image with the red points drawn
-        # output_path = "output.png"
-        # image.save(output_path)
-        return image
+        output_path = "img_" + stage + ".png"
+        image.save(self.folder_name + output_path)
 
     def generate_pdf(self):
         # initializing variables with values
         file_name = str(self.id_number) + '_' + str(self.date_today) + '.pdf'
         # Each image[1..4] turns the input CSV to a plotted image
-        # image1 = self.map_plotter("map_v2.png", self.training_map, PICK_A_COLOR)
-        # image2 = self.map_plotter("map_v2.png", self.real_map, PICK_A_COLOR)
-        # image3 = self.map_plotter("map_v2.png", self.free_style_1_map, PICK_A_COLOR)
-        # image4 = self.map_plotter("map_v2.png", self.free_style_2_map, PICK_A_COLOR)
+        self.map_plotter("training", self.train_user_path, self.train_optimal_path)
+        self.map_plotter("main", self.real_user_path, self.real_optimal_path)
+        self.map_plotter("free1", self.free_style_1_path, None)
+        self.map_plotter("free2", self.free_style_2_path, None)
         # Define the data for the subtitles and images
         data = {
             'date': str(self.date_today),
-            'name': str(self.name),
             'id_number': str(self.id_number),
+            'age': str(self.age),
+            'gender': str(self.gender),
             'has_license': str(self.has_license),
-            'has_adhd': str(self.adhd),
             'has_flight_experience': str(self.has_flight_experience),
-            'images': ['image1.jpg', 'image2.jpg', 'image3.jpg', 'image4.jpg']
+            'has_adhd': str(self.adhd),
+            'images': [self.folder_name + "img_training.png", self.folder_name + "img_main.png",
+                       self.folder_name + "img_free1.png", self.folder_name + "img_free2.png"]
         }
 
         # Define the styles for the subtitles and text
@@ -179,60 +195,67 @@ class PDFMaker:
             alignment=TA_LEFT
         )
 
+        table_style = TableStyle(
+            [('LINEABOVE', (0, 0), (-1, 0), 2, colors.green),
+             ('LINEABOVE', (0, 1), (-1, -1), 0.25, colors.black),
+             ('LINEBELOW', (0, -1), (-1, -1), 2, colors.green),
+             ('FONTSIZE', (0, 0), (5, 5), 12),
+             ('ALIGN', (0, 0), (-1, -1), 'LEFT')]
+        )
+
+        table_style_img = TableStyle(
+            [('ALIGN', (1, 1), (-1, -1), 'CENTER')]
+        )
+
+        space_width = 0.15
+
         # Create a list of Flowable objects
         flowables = []
 
-        space = '&nbsp;' * 30
-        # Date and license
-        flowables.append(
-            Paragraph('Date:&nbsp;' + data['date'] + space + 'Has license:&nbsp;' + str(data['has_license']),
-                      text_style))
-        flowables.append(Spacer(1, 0.5 * inch))
+        text_data = [
+            ["Name: " + data['id_number'], "Date: " + data['date']],
+            ["Age/Gender: " + data['age'] + "/" + data['gender'], "Driving license: " + data['has_license']],
+            ["ADHD: " + data['has_adhd'], "Flying exp.: " + data['has_flight_experience']]
+        ]
+        flowables.append(Table(text_data, colWidths=[4 * inch, 2 * inch], style=table_style))
 
-        # Name and ADHD
-        flowables.append(
-            Paragraph('Name:&nbsp;' + data[
-                'name'] + space + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Has ADHD:&nbsp;' + str(data['has_adhd']),
-                      text_style))
-        flowables.append(Spacer(1, 0.5 * inch))
+        track_info_space = '&nbsp;' * 2
 
-        # ID number and flight experience
-        flowables.append(Paragraph(
-            'ID:&nbsp;&nbsp;' + data[
-                'id_number'] + space + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Has flight experience (remote):&nbsp;' + str(
-                data['has_flight_experience']), text_style))
-        flowables.append(Spacer(1, 0.5 * inch))
+        flowables.append(Spacer(1, 0.3 * inch))
+
         # Training and Real headings
         flowables.append(
-            Paragraph(('&nbsp;' * 20) + '<b>Training - short</b>' + ('&nbsp;' * 40) + '<b>Real - long</b>', text_style))
-        flowables.append(Spacer(1, 0.2 * inch))
+            Paragraph(('&nbsp;' * 10) + '<b>Training - short</b>' + ('&nbsp;' * 65) + '<b>Real - long</b>', text_style))
+        flowables.append(Spacer(1, 0.1 * inch))
 
         # Create a list of lists for the images and data
+        image_size = 3.8
+
         image_data = [
-            [Image(data['images'][0], width=2.5 * inch, height=2.5 * inch),
-             Image(data['images'][1], width=2.5 * inch, height=2.5 * inch)],
-            [Paragraph('time - ' + str(self.train_time) + '\n\ndist - ' + str(self.train_dist) + '\n\n f.dist - ' + str(
+            [Image(data['images'][0], width=image_size * inch, height=image_size * inch),
+             Image(data['images'][1], width=image_size * inch, height=image_size * inch)],
+            [Paragraph('Time : ' + str(self.train_time) + "s "+track_info_space + ' Dist : ' + str(self.train_dist) + track_info_space + 'F.Dist : ' + str(
                 self.train_f_dist), text_style),
-             Paragraph('time - ' + str(self.real_time) + '\n\ndist - ' + str(self.real_dist) + '\n\nf.dist - ' + str(
+             Paragraph('Time : ' + str(self.real_time) + "s "+track_info_space + ' Dist : ' + str(self.real_dist) + track_info_space + 'F.Dist : ' + str(
                  self.real_f_dist), text_style)]
         ]
-        flowables.append(Table(image_data, colWidths=[3 * inch, 3 * inch]))
+        flowables.append(Table(image_data, colWidths=[4 * inch, 4 * inch], style=table_style_img))
 
-        flowables.append(Spacer(1, 0.5 * inch))
+        flowables.append(Spacer(1, 0.2 * inch))
 
         # Free1 and Free2 headings
-        flowables.append(Paragraph(space + '<b>Free1</b>' + ('&nbsp;' * 50) + '<b>Free2</b>', text_style))
-        flowables.append(Spacer(1, 0.2 * inch))
+        flowables.append(Paragraph(('&nbsp;' * 15) + '<b>Free1</b>' + ('&nbsp;' * 80) + '<b>Free2</b>', text_style))
+        flowables.append(Spacer(1, 0.1 * inch))
 
         # Create a list of lists for the images and data
         image_data = [
-            [Image(data['images'][2], width=2.5 * inch, height=2.5 * inch),
-             Image(data['images'][3], width=2.5 * inch, height=2.5 * inch)],
-            [Paragraph('time - ' + str(self.frees1_time) + '\ndist - ' + str(self.frees1_dist), text_style),
-             Paragraph('time - ' + str(self.frees2_time) + '\ndist - ' + str(self.frees2_dist), text_style)]
+            [Image(data['images'][2], width=image_size * inch, height=image_size * inch),
+             Image(data['images'][3], width=image_size * inch, height=image_size * inch)],
+            [Paragraph('Time : ' + str(self.frees1_time) + "s " + track_info_space + 'Dist : ' + str(self.frees1_dist), text_style),
+             Paragraph('Time : ' + str(self.frees2_time) + "s " + track_info_space + 'Dist : ' + str(self.frees2_dist), text_style)]
         ]
-        flowables.append(Table(image_data, colWidths=[3 * inch, 3 * inch]))
-        doc = SimpleDocTemplate(file_name, pagesize=letter)
+        flowables.append(Table(image_data, colWidths=[4 * inch, 4 * inch], style=table_style_img))
+        doc = SimpleDocTemplate(self.folder_name + file_name, pagesize=A4, showBoundary=0, topMargin=inch * 0.25)
         doc.build(flowables)
 
 
@@ -241,9 +264,14 @@ How to call -
 1) initialize object - id_number, name, has_license, adhd, has_flight_experience
 2) update_timer - time_spent, start_time, distance
 3) update_phase - num of phase from 1 to 4
+'''
 
 if __name__ == '__main__':
-    x = PDFMaker(204355846, "OHAD", "Yes", "No", "Maybe")
+    x = PDFMaker("../", 204355846, 20, "f", "No", "yes", "yes")
+
+    x.update_phase("training", 10, 10, 10, [[10, 10, 10], [10, 10, 10]], [[10, 10, 10], [10, 10, 10]])
+    x.update_phase("main", 10, 10, 10, [[10, 10, 10], [10, 10, 10]], [[10, 10, 10], [10, 10, 10]])
+    x.update_phase("free1", 10, 10, 10, [[10, 10, 10], [10, 10, 10]], [[10, 10, 10], [10, 10, 10]])
+    x.update_phase("free2", 10, 10, 10, [[10, 10, 10], [10, 10, 10]], [[10, 10, 10], [10, 10, 10]])
 
     x.generate_pdf()
-'''

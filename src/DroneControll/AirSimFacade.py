@@ -77,7 +77,17 @@ class AirSimFacade:
         self.vertical_position = 0
         self.horizontal_speed = 0
 
-        self.client.landAsync().join()
+        #self.client.moveByVelocityZAsync(0, 0, 0, 1,
+        #                                 self.air_sim.DrivetrainType.MaxDegreeOfFreedom,
+        #                                 self.air_sim.YawMode(False, self.camera_heading), vehicle_name=self.drone_name).join()
+
+        #self.client.landAsync().join()
+        self.client.reset()
+
+        self.client.enableApiControl(True, vehicle_name=self.drone_name)  # enable API control on Drone0
+        self.client.armDisarm(True, vehicle_name=self.drone_name)  # arm Drone0
+
+        self.client.takeoffAsync(vehicle_name=self.drone_name).join()  # let Drone0 take-off
 
     def restart_training(self):
 
@@ -203,12 +213,12 @@ class AirSimFacade:
 
         if style == "free":
             self.client.simPlotPoints(points=sublist_of_vectors,
-                                      color_rgba=[1.0, 0.0, 0.0, 1.0], size=75, duration=-1, is_persistent=True)
+                                      color_rgba=[0.0, 0.0, 1.0, 1.0], size=75, duration=-1, is_persistent=True)
             return
 
         if style == "path":
             self.client.simPlotPoints(points=sublist_of_vectors,
-                                      color_rgba=[1.0, 0.0, 0.0, 1.0], size=50, duration=-1, is_persistent=True)
+                                      color_rgba=[0.0, 0.0, 1.0, 1.0], size=50, duration=-1, is_persistent=True)
             self.client.simPlotLineStrip(points=sublist_of_vectors,
                                          color_rgba=[1.0, 1.0, 0.0, 1.0], thickness=5, duration=-1, is_persistent=True)
 

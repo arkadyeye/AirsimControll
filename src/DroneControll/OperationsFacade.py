@@ -105,8 +105,8 @@ class OperationsFacade():
                 if event.key == pygame.K_l:
                     pathapi.load_path_from_json(gamelogic)
 
-                if event.key == pygame.K_SPACE:
-                    sim.abort_automation()
+               # if event.key == pygame.K_SPACE:
+               #     sim.abort_automation()
 
     # def add_to_path(self, sim):
     #     list_of_path.append(sim.get_position())

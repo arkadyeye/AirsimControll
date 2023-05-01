@@ -28,14 +28,21 @@ import easygui
 import json
 import airsim
 import random
-import time
 import PathApi
 
 from Logger import PostAnalyser
+from PDFMaker import PDFMaker
 
 import numpy as np
 import similaritymeasures
 from csv import reader
+
+import os
+import time
+from datetime import datetime
+
+import winsound
+from pathlib import Path
 
 
 class GameLogic:
@@ -53,6 +60,7 @@ class GameLogic:
     mark = 400
 
     game_stage = STAGE_NOT_IN_GAME
+    folder_name = ""
 
     sim = None
 
@@ -76,6 +84,7 @@ class GameLogic:
     is_path_loaded = False
 
     pa = None
+    pdfMaker = None
     user_name = ""
     age = ""
     gender = ""
@@ -105,6 +114,11 @@ class GameLogic:
     optimal_short_time = 32  # sec
     optimal_long_time = 86  # sec
 
+    # beep on waypoint collected
+    duration = 30 # ms
+    freq = 2000 # hz
+
+
     def __init__(self, sim):
         self.sim = sim
         self.optimal_short = self.load_optimal_path_data("SavedPaths\\optimal_short_5_path.csv")
@@ -123,7 +137,10 @@ class GameLogic:
         if self.pa != None:
             self.pa.close()
 
-        #if self.game_stage == self.STAGE_NOT_IN_GAME:
+        if self.pdfMaker != None:
+            self.pdfMaker.generate_pdf()
+
+        # if self.game_stage == self.STAGE_NOT_IN_GAME:
         self.user_name = user_name
         self.age = age
         self.gender = gender
@@ -131,7 +148,15 @@ class GameLogic:
         self.flying_experience = flying_exp
         self.adhd = adhd
 
-        self.pa = PostAnalyser(user_name + "_training", self.csv_header)
+        folder_name = "..//..//Results//" + user_name + "_" +"{:%Y_%m_%d_%H_%M_%S}".format(datetime.now())
+        path = Path(folder_name)
+        path.mkdir(parents=True, exist_ok=True)
+        print("Directory '%s' created" % folder_name)
+        self.folder_name = folder_name
+
+        self.pa = PostAnalyser(folder_name, "training", self.csv_header)
+        self.pdfMaker = PDFMaker(folder_name+"/", self.user_name, self.age, self.gender, self.driving_license, self.flying_experience,
+                                 self.adhd)
         self.train_csv = self.pa
         self.sim.flush_persistent_markers()
         self.load_path_file("SavedPaths\\short_path.json")
@@ -159,22 +184,22 @@ class GameLogic:
         self.sim.restart_training()
 
         if self.game_stage == self.STAGE_TRAINING:
-            self.pa = PostAnalyser(self.user_name + "_training", self.csv_header)
+            self.pa = PostAnalyser(self.folder_name, "training", self.csv_header)
             self.load_path_file("SavedPaths\\short_path.json")
             self.sim.draw_path(self.list_of_vectors[0:self.PATH_DRAW_AHEAD], style="path")
 
         if self.game_stage == self.STAGE_MAIN_PATH:
-            self.pa = PostAnalyser(self.user_name + "_real", self.csv_header)
+            self.pa = PostAnalyser(self.folder_name,"real", self.csv_header)
             self.load_path_file("SavedPaths\\long_path.json")
             self.sim.draw_path(self.list_of_vectors[0:self.PATH_DRAW_AHEAD], style="path")
 
         if self.game_stage == self.STAGE_FREE_STYLE_1:
-            self.pa = PostAnalyser(self.user_name + "_free1", self.csv_header)
+            self.pa = PostAnalyser(self.folder_name,"free1", self.csv_header)
             self.load_path_file("SavedPaths\\free_style_waypoints.json")
             self.sim.draw_path(self.list_of_vectors, style="free")
 
         if self.game_stage == self.STAGE_FREE_STYLE_2:
-            self.pa = PostAnalyser(self.user_name + "_free2", self.csv_header)
+            self.pa = PostAnalyser(self.folder_name,"free2", self.csv_header)
             self.load_path_file("SavedPaths\\free_style_waypoints.json")
             self.sim.draw_path(self.list_of_vectors, style="free")
 
@@ -202,21 +227,27 @@ class GameLogic:
 
         if self.game_stage == self.STAGE_TRAINING:
             self.mark = self.mark - self.sim.get_colisons_counter() * 10
-
             df = similaritymeasures.frechet_dist(exp_data, self.optimal_short)
             self.mark = self.mark - df
 
             df_time = self.time_train - self.optimal_short_time
             self.mark = self.mark - df_time
 
-            easygui.msgbox("Yo have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
+            df = round(df, 2)
+            self.time_train = round(self.time_train, 2)
+            self.total_dist = round(self.total_dist, 2)
+            self.mark = round(self.mark, 2)
+
+            easygui.msgbox("You have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
                            "time:" + str(self.time_train) + " \n" + \
                            "dist: " + str(self.total_dist) + " \n" + \
                            "fr.dist: " + str(df) + " \n" + \
                            "total mark is: " + str(self.mark), "Path completed")
 
+            self.pdfMaker.update_phase(self.STAGE_TRAINING, self.time_train, self.total_dist, df, self.optimal_short,exp_data)
+
             # finish training, and load real path
-            easygui.msgbox("Yo have finished the Training\n Ready to start the real thing ?", "Path completed")
+            easygui.msgbox("You have finished the Training\n Ready to start the real thing ?", "Path completed")
             self.game_stage = self.STAGE_MAIN_PATH
             self.restart_training()
             return
@@ -230,11 +261,18 @@ class GameLogic:
             df_time = self.time_train - self.optimal_long_time
             self.mark = self.mark - df_time
 
-            easygui.msgbox("Yo have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
+            df = round(df, 2)
+            self.time_train = round(self.time_train, 2)
+            self.total_dist = round(self.total_dist, 2)
+            self.mark = round(self.mark, 2)
+
+            easygui.msgbox("You have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
                            "time:" + str(self.time_train) + " \n" + \
                            "dist: " + str(self.total_dist) + " \n" + \
                            "fr.dist: " + str(df) + " \n" + \
                            "total mark is: " + str(self.mark), "Path completed")
+
+            self.pdfMaker.update_phase(self.STAGE_MAIN_PATH, self.time_train, self.total_dist, df, self.optimal_long,exp_data)
 
             easygui.msgbox("Now you have to find the objects on your own", "Path completed")
             self.game_stage = self.STAGE_FREE_STYLE_1
@@ -243,10 +281,17 @@ class GameLogic:
 
         if self.game_stage == self.STAGE_FREE_STYLE_1:
             self.mark = self.mark - self.sim.get_colisons_counter() * 10
-            easygui.msgbox("Yo have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
+
+            self.time_train = round(self.time_train, 2)
+            self.total_dist = round(self.total_dist, 2)
+            self.mark = round(self.mark, 2)
+
+            easygui.msgbox("You have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
                            "time:" + str(self.time_train) + " \n" + \
                            "dist: " + str(self.total_dist) + " \n" + \
                            "total mark is: " + str(self.mark), "Path completed")
+
+            self.pdfMaker.update_phase(self.STAGE_FREE_STYLE_1, self.time_train, self.total_dist, 0, None, exp_data)
 
             easygui.msgbox("Now you have to find the objects on your own", "Path completed")
             self.game_stage = self.STAGE_FREE_STYLE_2
@@ -255,12 +300,20 @@ class GameLogic:
 
         if self.game_stage == self.STAGE_FREE_STYLE_2:
             self.mark = self.mark - self.sim.get_colisons_counter() * 10
+            self.time_train = round(self.time_train, 2)
+            self.total_dist = round(self.total_dist, 2)
+            self.mark = round(self.mark, 2)
+
             easygui.msgbox("Yo have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
                            "time:" + str(self.time_train) + " \n" + \
                            "dist: " + str(self.total_dist) + " \n" + \
                            "total mark is: " + str(self.mark), "Path completed")
 
+            self.pdfMaker.update_phase(self.STAGE_FREE_STYLE_2, self.time_train, self.total_dist, 0, None, exp_data)
+
             easygui.msgbox("You have done perfectly ! thanks for your time", "Path completed")
+
+            self.pdfMaker.generate_pdf()
 
             # Insert here Comparator Function
             # parameters = (self.user_name, self.age, self.gender, self.driving_license,
@@ -348,6 +401,9 @@ class GameLogic:
             dist = pose.position.distance_to(self.list_of_vectors[self.target_on_path_index])
             if dist < self.EPSILON and self.target_on_path_index + 1 < len(self.list_of_vectors):
 
+                # beep on collected
+                winsound.Beep(self.freq, self.duration)
+
                 # save colleted waypoit
                 self.last_collected_waypoint = self.list_of_vectors[self.target_on_path_index]
 
@@ -376,11 +432,15 @@ class GameLogic:
             '''
 
             # update path drawing (remove already passed cubes)
-            print("len: ", len(self.list_of_vectors))
+            #print("len: ", len(self.list_of_vectors))
 
             for i in range(0, len(self.list_of_vectors)):
                 dist = pose.position.distance_to(self.list_of_vectors[i])
                 if dist < self.EPSILON * 2:
+
+                    # beep on collected
+                    winsound.Beep(self.freq, self.duration)
+
                     # remove element at I
                     del self.list_of_vectors[i]
                     self.sim.draw_path(self.list_of_vectors, style="free")
