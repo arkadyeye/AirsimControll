@@ -68,6 +68,10 @@ class LogitechRacingController:
         if self.joystick_name != joystick.get_name():
             return
 
+        #check for fast mode
+        btn_fast = joystick.get_button(3)
+
+        horizontal_value = 0
         # deal with axis
 
         # pass yaw
@@ -77,18 +81,30 @@ class LogitechRacingController:
 
         # pass speed
         value_speed = joystick.get_axis(1)
+        
+        if btn_fast == 1:
+            value_speed = value_speed * 2
+        
         if round(value_speed, 1) != 0:
             self.drone_controller.set_speed(-1 * value_speed * 7.5)
-            self.speed_activated = True
+            self.speed_activated = True           
+            
         else:
             if self.speed_activated:
                 self.speed_activated = False
                 self.drone_controller.set_speed(0)
 
+        # add drift for turning
+        if round(value_speed, 1) != 0 and round(value, 1) != 0:
+            horizontal_value = 7.5 *value * value_speed
+
         # deal with buttons
         x, y = joystick.get_hat(0)
-        if x != 0:
-            self.drone_controller.set_horizontal_movement(x * (-4))
+        if x != 0 or horizontal_value != 0:
+            horizontal_value = horizontal_value + x * (-4)
+            
+            self.drone_controller.set_horizontal_movement(horizontal_value)
+            
             self.horizontal_speed_activated = True
         else:
             if self.horizontal_speed_activated:
@@ -102,6 +118,7 @@ class LogitechRacingController:
             if self.vertical_speed_activated:
                 self.vertical_speed_activated = False
                 self.drone_controller.set_vertical_movement(0)
+                
 
         #looks like the left hat should be enabled for up/down too
 

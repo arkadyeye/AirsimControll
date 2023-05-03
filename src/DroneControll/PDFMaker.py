@@ -158,7 +158,7 @@ class PDFMaker:
 
     def generate_pdf(self):
         # initializing variables with values
-        file_name = str(self.id_number) + '_' + str(self.date_today) + '.pdf'
+        file_name = str(self.id_number) + '_report.pdf'
         # Each image[1..4] turns the input CSV to a plotted image
         self.map_plotter("training", self.train_user_path, self.train_optimal_path)
         self.map_plotter("main", self.real_user_path, self.real_optimal_path)
