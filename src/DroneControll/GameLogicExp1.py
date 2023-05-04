@@ -165,6 +165,7 @@ class GameLogic:
         self.train_csv = self.pa
         self.sim.flush_persistent_markers()
         self.load_path_file("SavedPaths\\short_path.json")
+        #self.load_path_file("SavedPaths\\shraga_train_3_min.json")
         self.sim.draw_path(self.list_of_vectors[0:self.PATH_DRAW_AHEAD], style="path")
         self.game_stage = self.STAGE_TRAINING
         self.sim.restart_training()
