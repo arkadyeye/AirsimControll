@@ -17,6 +17,8 @@ class PathApi:
         with open("SavedPaths/" + str_timestamp[0:9] + ".json", 'w', encoding='utf-8') as f:
             json.dump(self.list_of_path, f, ensure_ascii=False, indent=4)
 
+        self.list_of_path.clear()
+
     def load_path_file(self, filename, game_logic):
         print("Line 67 called from GameLogicExp1.py")
         # open file dialog
@@ -65,3 +67,6 @@ class PathApi:
         #     color_rgba=[1.0, 1.0, 0.0, 0.02], thickness=5, duration=300.0, is_persistent=False)
 
         print("point added")
+
+    def add_position_to_path(self, position):
+        self.list_of_path.append(position)

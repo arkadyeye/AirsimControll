@@ -26,6 +26,7 @@ class AirSimFacade:
     collision_counter = 0
 
     def __init__(self, drone_name):
+        self.path_api = None
         self.drone_name = drone_name
         self.client = self.air_sim.MultirotorClient()  # connect to the simulator
         self.client.confirmConnection()
@@ -42,6 +43,16 @@ class AirSimFacade:
 
         print("AirSim Ready")
 
+    # path api. add curent position to path
+    def add_path_api(self, path_api):
+        self.path_api = path_api
+
+    def add_position_to_path(self):
+        self.path_api.add_position_to_path(self.get_position())
+
+
+
+    # ########## up to here
     def add_rotation(self, heading):
         self.camera_heading = (self.camera_heading + heading) % 360
 

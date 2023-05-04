@@ -30,8 +30,11 @@ class LogitechDualAction:
     horizontal_speed_activated = False
 
     def __init__(self,  drone_controller):
+        self.btn_add_poit_activated = False
         print("Logitech dual action created")
         self.drone_controller = drone_controller
+
+
 
     def getCsvHeader(self):
         # logitec dual stick joystik has 4 axis, 12 buttons, and one hat
@@ -102,3 +105,13 @@ class LogitechDualAction:
             if self.vertical_speed_activated:
                 self.drone_controller.set_vertical_movement(0)
                 self.vertical_speed_activated = False
+
+        # check if btn 7 pressed. used to build a new path
+        btn_add_poit = joystick.get_button(6)
+        if btn_add_poit == 1:
+            if not self.btn_add_poit_activated:
+                self.btn_add_poit_activated = True
+                self.drone_controller.add_position_to_path()
+        else:
+            self.btn_add_poit_activated = False
+

@@ -450,12 +450,12 @@ from time import sleep
 
 
 print ("here we start")
-json_name = "short_path.json"
+json_name = "shraga_train_3_min.json"
 onPathSpeed = 5
 continue_flag = True
 init()
 load_path_from_json("SavedPaths//"+json_name)
-pa = PostAnalyser("optimal_" + json_name + "_speed_" + str(onPathSpeed),"")
+pa = PostAnalyser("SavedPaths//","a","")
 
 client.simPlotPoints(points=list_of_vectors[:-1],
                      color_rgba=[1.0, 0.0, 0.0, 1.0], size=25, duration=0.5, is_persistent=True)
@@ -464,7 +464,7 @@ client.simPlotLineStrip(
     points=list_of_vectors[:-1],
     color_rgba=[1.0, 1.0, 0.0, 1.0], thickness=5, duration=0.5, is_persistent=True)
 
-result = client.moveOnPathAsync(list_of_vectors[:-1], onPathSpeed, 120,
+result = client.moveOnPathAsync(list_of_vectors[:-1], onPathSpeed, 1200,
                                     airsim.DrivetrainType.ForwardOnly, airsim.YawMode(False, 0), -1, 3,
                                     vehicle_name="Drone0")
 

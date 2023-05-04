@@ -77,6 +77,8 @@ sim = AirSimFacade("Drone0")
 
 pathApi = PathApi()
 
+sim.add_path_api(pathApi)
+
 # init upd server(s)
 
 pressure_listener = PressureUdp()
