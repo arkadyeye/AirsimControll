@@ -1,7 +1,3 @@
-# importing modules
-import csv
-import datetime
-
 from PIL import ImageDraw
 import PIL.Image as PilImage
 from reportlab.lib.pagesizes import letter, A4
@@ -12,68 +8,31 @@ from reportlab.lib.enums import TA_LEFT
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from datetime import datetime
 
-'''
-Option one - ugly function
-params[0] = name
-params[1] = id
-params[2] = has license
-params[3] = has adhd
-params[4] = starting time
-params[5] = has flight experience (remote)
-params[6] = time spent
-params[7] = distance
-params[8] = difference between tracks
-params[9] = drawing of map
-params[10] = drawing of map
-params[11] = drawing of map
-params[12] = drawing of map
 
-Option two - object
-'''
+# Phase class which contains name,time,dist,f_dist
+class Phase:
+    img_path = ""  # The path of the image will be saved here
+
+    # p stands for phase
+    def __init__(self, current_phase, p_time, p_dist, p_f_dist, p_user_path, p_optimal_path):
+        self.current_phase = current_phase  # Phase name
+        self.p_time = p_time  # Phase time
+        self.p_dist = p_dist  # Phase dist
+        self.p_f_dist = p_f_dist  # Phase f_dist (can be none)
+        self.p_user_path = p_user_path
+        self.p_optimal_path = p_optimal_path  # Phase optimal path (can be none)
 
 
 class PDFMaker:
-    STAGE_NOT_IN_GAME = "not_in_game"
-    STAGE_TRAINING = "training"
-    STAGE_MAIN_PATH = "main"
-    STAGE_FREE_STYLE_1 = "free1"
-    STAGE_FREE_STYLE_2 = "free2"
-
-    time_spent = 0
-    starting_time = 0
-    distance = 0
-    f_dist = 0
     difference_between_tracks = 0
     date_today = "{:%Y:%m:%d %H:%M}".format(datetime.now())
-    current_phase = 0
 
-    # Training phase
-    train_time = 0
-    train_dist = 0
-    train_f_dist = 0
-
-    # Real phase
-    real_time = 0
-    real_dist = 0
-    real_f_dist = 0
-
-    # Freestyle 1 phase
-    frees1_time = 0
-    frees1_dist = 0
-
-    # Freestyle 2 phase
-    frees2_time = 0
-    frees2_dist = 0
+    # List of phases
+    phases = []
 
     def __init__(self, folder_name, user_name, age, gender, has_license, has_flight_experience, adhd):
 
         self.folder_name = folder_name
-        self.free_style_2_path = None
-        self.free_style_1_path = None
-        self.real_user_path = None
-        self.train_user_path = None
-        self.real_optimal_path = None
-        self.train_optimal_path = None
         self.id_number = user_name
         self.age = age
         self.gender = gender
@@ -81,55 +40,18 @@ class PDFMaker:
         self.has_flight_experience = has_flight_experience
         self.adhd = adhd
 
-    # reset the current distances and times
-    def reset_timer(self):
-        self.time_spent = 0
-        self.starting_time = 0
-        self.distance = 0
-
-    def update_timer(self, time_spent, start_time, distance):
-        self.time_spent = time_spent
-        self.starting_time = start_time
-        self.distance = distance
-
     # At the end of each phase -> use function -> save current time and stats -> reset timer
     def update_phase(self, stage, time, distance, fr_distance, optimal_path, user_path):
-        if stage == self.STAGE_TRAINING:
-            # self.current_phase = 1
-            self.train_time = time
-            self.train_dist = distance
-            self.train_f_dist = fr_distance
-            self.train_optimal_path = optimal_path
-            self.train_user_path = user_path
-            self.reset_timer()
-
-        if stage == self.STAGE_MAIN_PATH:
-            # self.current_phase = 2
-            self.real_time = time
-            self.real_dist = distance
-            self.real_f_dist = fr_distance
-            self.real_optimal_path = optimal_path
-            self.real_user_path = user_path
-            self.reset_timer()
-
-        if stage == self.STAGE_FREE_STYLE_1:
-            # self.current_phase = 3
-            self.frees1_time = time
-            self.frees1_dist = distance
-            self.free_style_1_path = user_path
-            self.reset_timer()
-
-        if stage == self.STAGE_FREE_STYLE_2:
-            # self.current_phase = 4
-            self.frees2_time = time
-            self.frees2_dist = distance
-            self.free_style_2_path = user_path
-            self.reset_timer()
+        self.phases.append(Phase(stage, time, distance, fr_distance, optimal_path, user_path))
 
     def map_plotter(self, stage, user_path, optimal_path):
         # Load the image
         image_path = "SavedPaths//map_v2.png"
         image = PilImage.open(image_path)
+
+        # The resolution of each saved image, the lower, the less size it takes
+        size = (450, 450)  # Declare a resolution here
+        image = image.resize(size)  # Resize the image file
 
         # Draw red points on the image with the given coordinates
         draw = ImageDraw.Draw(image)
@@ -159,12 +81,14 @@ class PDFMaker:
     def generate_pdf(self):
         # initializing variables with values
         file_name = str(self.id_number) + '_report.pdf'
-        # Each image[1..4] turns the input CSV to a plotted image
-        self.map_plotter("training", self.train_user_path, self.train_optimal_path)
-        self.map_plotter("main", self.real_user_path, self.real_optimal_path)
-        self.map_plotter("free1", self.free_style_1_path, None)
-        self.map_plotter("free2", self.free_style_2_path, None)
+        # Each image[1...len(self.phases)] turns the input CSV to a plotted image
+        for phase in self.phases:
+            self.map_plotter(phase.current_phase, phase.p_user_path, phase.p_optimal_path)
+
         # Define the data for the subtitles and images
+        for i in self.phases:
+            i.img_path = self.folder_name + "img_" + i.current_phase + ".png"
+
         data = {
             'date': str(self.date_today),
             'id_number': str(self.id_number),
@@ -173,15 +97,13 @@ class PDFMaker:
             'has_license': str(self.has_license),
             'has_flight_experience': str(self.has_flight_experience),
             'has_adhd': str(self.adhd),
-            'images': [self.folder_name + "img_training.png", self.folder_name + "img_main.png",
-                       self.folder_name + "img_free1.png", self.folder_name + "img_free2.png"]
         }
 
         # Define the styles for the subtitles and text
         title_style = ParagraphStyle(
             name='Title',
             fontName='Helvetica-Bold',
-            fontSize=14,
+            fontSize=18,
             leading=14,
             textColor=colors.black,
             alignment=TA_LEFT
@@ -189,7 +111,7 @@ class PDFMaker:
         text_style = ParagraphStyle(
             name='Text',
             fontName='Helvetica',
-            fontSize=12,
+            fontSize=15,
             leading=12,
             textColor=colors.black,
             alignment=TA_LEFT
@@ -203,12 +125,6 @@ class PDFMaker:
              ('ALIGN', (0, 0), (-1, -1), 'LEFT')]
         )
 
-        table_style_img = TableStyle(
-            [('ALIGN', (1, 1), (-1, -1), 'CENTER')]
-        )
-
-        space_width = 0.15
-
         # Create a list of Flowable objects
         flowables = []
 
@@ -220,41 +136,42 @@ class PDFMaker:
         flowables.append(Table(text_data, colWidths=[4 * inch, 2 * inch], style=table_style))
 
         track_info_space = '&nbsp;' * 2
+        flowables.append(Spacer(1, 9.5 * inch))
 
-        flowables.append(Spacer(1, 0.3 * inch))
+        # Iterates over each phase
+        for phase in self.phases:
+            # If phase have no f_dist (freestyle for instance)
+            if phase.p_f_dist is None:
+                time_dist_text = 'Time : ' + str(phase.p_time) + "s " + track_info_space + ' Dist : ' + str(
+                    phase.p_dist)
+            else:
+                time_dist_text = 'Time : ' + str(phase.p_time) + "s " + track_info_space + ' Dist : ' + str(
+                    phase.p_dist) + track_info_space + 'F.Dist : ' + str(phase.p_f_dist)
 
-        # Training and Real headings
-        flowables.append(
-            Paragraph(('&nbsp;' * 10) + '<b>Training - short</b>' + ('&nbsp;' * 65) + '<b>Real - long</b>', text_style))
-        flowables.append(Spacer(1, 0.1 * inch))
+            tbl_data = [
+                [flowables.append(Paragraph('&nbsp;' * 40 + '<b>' + phase.current_phase + '</b>', title_style))],
+                [Image(phase.img_path, width=7.5 * inch, height=7.5 * inch)],
+                [flowables.append(Spacer(1, 0.1 * inch))],
+                [Paragraph(time_dist_text, text_style)]
+            ]
 
-        # Create a list of lists for the images and data
-        image_size = 3.8
+            tbl = Table(tbl_data, colWidths=[4 * inch, 8 * inch])
 
-        image_data = [
-            [Image(data['images'][0], width=image_size * inch, height=image_size * inch),
-             Image(data['images'][1], width=image_size * inch, height=image_size * inch)],
-            [Paragraph('Time : ' + str(self.train_time) + "s "+track_info_space + ' Dist : ' + str(self.train_dist) + track_info_space + 'F.Dist : ' + str(
-                self.train_f_dist), text_style),
-             Paragraph('Time : ' + str(self.real_time) + "s "+track_info_space + ' Dist : ' + str(self.real_dist) + track_info_space + 'F.Dist : ' + str(
-                 self.real_f_dist), text_style)]
-        ]
-        flowables.append(Table(image_data, colWidths=[4 * inch, 4 * inch], style=table_style_img))
+            # Add some styling to the table
+            tbl_style = TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 0),
+                ('TOPPADDING', (0, -1), (-1, -1), 0),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER')
+            ])
+            tbl.setStyle(tbl_style)
 
-        flowables.append(Spacer(1, 0.2 * inch))
+            flowables.append(Spacer(1, 0.2 * inch))
+            flowables.append(tbl)
+            flowables.append(Spacer(1, 1.5 * inch))
 
-        # Free1 and Free2 headings
-        flowables.append(Paragraph(('&nbsp;' * 15) + '<b>Free1</b>' + ('&nbsp;' * 80) + '<b>Free2</b>', text_style))
-        flowables.append(Spacer(1, 0.1 * inch))
-
-        # Create a list of lists for the images and data
-        image_data = [
-            [Image(data['images'][2], width=image_size * inch, height=image_size * inch),
-             Image(data['images'][3], width=image_size * inch, height=image_size * inch)],
-            [Paragraph('Time : ' + str(self.frees1_time) + "s " + track_info_space + 'Dist : ' + str(self.frees1_dist), text_style),
-             Paragraph('Time : ' + str(self.frees2_time) + "s " + track_info_space + 'Dist : ' + str(self.frees2_dist), text_style)]
-        ]
-        flowables.append(Table(image_data, colWidths=[4 * inch, 4 * inch], style=table_style_img))
         doc = SimpleDocTemplate(self.folder_name + file_name, pagesize=A4, showBoundary=0, topMargin=inch * 0.25)
         doc.build(flowables)
 
@@ -264,14 +181,15 @@ How to call -
 1) initialize object - id_number, name, has_license, adhd, has_flight_experience
 2) update_timer - time_spent, start_time, distance
 3) update_phase - num of phase from 1 to 4
-'''
+
 
 if __name__ == '__main__':
-    x = PDFMaker("../", 204355846, 20, "f", "No", "yes", "yes")
+    x = PDFMaker("../", 123465, 20, "f", "No", "yes", "yes")
 
     x.update_phase("training", 10, 10, 10, [[10, 10, 10], [10, 10, 10]], [[10, 10, 10], [10, 10, 10]])
     x.update_phase("main", 10, 10, 10, [[10, 10, 10], [10, 10, 10]], [[10, 10, 10], [10, 10, 10]])
-    x.update_phase("free1", 10, 10, 10, [[10, 10, 10], [10, 10, 10]], [[10, 10, 10], [10, 10, 10]])
+    x.update_phase("free1", 10, 10, None, [[10, 10, 10], [10, 10, 10]], [[10, 10, 10], [10, 10, 10]])
     x.update_phase("free2", 10, 10, 10, [[10, 10, 10], [10, 10, 10]], [[10, 10, 10], [10, 10, 10]])
 
     x.generate_pdf()
+'''
