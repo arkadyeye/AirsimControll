@@ -11,8 +11,11 @@ from InputDevices.HotasXController import HotasXController
 from InputDevices.LogitechRacingController import LogitechRacingController
 from InputDevices.LogitechDualAction import LogitechDualAction
 
-from InputDevices.PressureUdp import PressureUdp
+from InputDevices.GeneralUdp import PressureUdp
 from InputDevices.EmotiBitUdp import EmotiBitUdp
+
+from InputDevices.HeadPoseUdp import HeadPoseUdp
+
 
 
 
@@ -81,8 +84,11 @@ sim.add_path_api(pathApi)
 
 # init upd server(s)
 
-pressure_listener = PressureUdp()
-pressure_listener.init()
+#pressure_listener = PressureUdp()
+#pressure_listener.init()
+
+head_pose_listener = HeadPoseUdp()
+head_pose_listener.init()
 
 emoti_listener = EmotiBitUdp()
 emoti_listener.init()
@@ -124,6 +130,7 @@ for i in range(joystick_count):
 
 
 # add header of emotibit and head tracker(?)
+gameLogic.addCsvHeader(head_pose_listener.get_header_csv())
 gameLogic.addCsvHeader(emoti_listener.get_header_csv())
 
 
@@ -261,6 +268,7 @@ while done == False:
     # ALL CODE TO DRAW SHOULD GO ABOVE THIS COMMENT
 
     # collect data from EmotiBit and Head Tarcker (?)
+    gameLogic.addCsvData(head_pose_listener.get_status_csv())
     gameLogic.addCsvData(emoti_listener.get_status_csv())
 
     # Go ahead and update the screen with what we've drawn.

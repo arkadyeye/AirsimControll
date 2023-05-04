@@ -16,7 +16,7 @@ import socket
 RIGHT_EYE = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246]
 LEFT_EYE = [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398]
 
-debug_mode = False
+debug_mode = True
 
 
 def dist(point, point1):
@@ -187,7 +187,8 @@ while cap.isOpened():
     head_pose = head_movement(image)
     if head_pose is not None:
         is_blink = blink_detector(image, results)
-        msg = "status: "+str(round(head_pose[0],3))+" "+str(round(head_pose[1],3))+" "+str(round(head_pose[2],3))+" bl: "+str(round(is_blink,3))
+        # HP for HeadPose
+        msg = "HP:"+str(round(head_pose[0],3))+","+str(round(head_pose[1],3))+","+str(round(head_pose[2],3))+","+str(round(is_blink,3))
 
         if debug_mode:
             print("status: "+msg)

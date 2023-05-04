@@ -195,22 +195,22 @@ class GameLogic:
             self.sim.draw_path(self.list_of_vectors[0:self.PATH_DRAW_AHEAD], style="path")
 
         if self.game_stage == self.STAGE_LONG_1:
-            self.pa = PostAnalyser(self.folder_name,"real", self.csv_header)
+            self.pa = PostAnalyser(self.folder_name,"real_1", self.csv_header)
             self.load_path_file("SavedPaths\\long_path.json")
             self.sim.draw_path(self.list_of_vectors[0:self.PATH_DRAW_AHEAD], style="path")
 
         if self.game_stage == self.STAGE_FREE_STYLE_1:
-            self.pa = PostAnalyser(self.folder_name,"free1", self.csv_header)
+            self.pa = PostAnalyser(self.folder_name,"free_1", self.csv_header)
             self.load_path_file("SavedPaths\\free_style_waypoints.json")
             self.sim.draw_path(self.list_of_vectors, style="free")
 
         if self.game_stage == self.STAGE_LONG_2:
-            self.pa = PostAnalyser(self.folder_name,"real", self.csv_header)
+            self.pa = PostAnalyser(self.folder_name,"real_2", self.csv_header)
             self.load_path_file("SavedPaths\\long_path_2.json")
             self.sim.draw_path(self.list_of_vectors[0:self.PATH_DRAW_AHEAD], style="path")
 
         if self.game_stage == self.STAGE_FREE_STYLE_2:
-            self.pa = PostAnalyser(self.folder_name,"free2", self.csv_header)
+            self.pa = PostAnalyser(self.folder_name,"free_2", self.csv_header)
             self.load_path_file("SavedPaths\\free_style_2_waypoints.json")
             self.sim.draw_path(self.list_of_vectors, style="free")
 
@@ -360,7 +360,7 @@ class GameLogic:
             # exp_dataa.exp_data(parameters)
 
             self.game_stage = self.STAGE_NOT_IN_GAME
-
+            self.restart_training()
             return
 
     def escape_position(self):  # this function should take you out of a problematic position

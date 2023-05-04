@@ -156,8 +156,6 @@ class EmotiBitUdp:
         ans = ans + self.last_SA + "," + self.last_SF + "," + self.last_SR + "," + self.last_T1 + ","
         ans = ans + self.last_battery + "," + self.last_TL + "," + self.last_TL_internal_time
 
-
-
         return ans
 
     def listen(self):
