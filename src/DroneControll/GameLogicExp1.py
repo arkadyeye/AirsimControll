@@ -329,7 +329,7 @@ class GameLogic:
                            "fr.dist: " + str(df) + " \n" + \
                            "total mark is: " + str(self.mark), "Path completed")
 
-            #self.pdfMaker.update_phase(self.STAGE_LONG_1, self.time_train, self.total_dist, df, self.optimal_long, exp_data)
+            self.pdfMaker.update_phase(self.STAGE_LONG_2, self.time_train, self.total_dist, df, self.optimal_long_2, exp_data)
 
             easygui.msgbox("Now you have to find the objects on your own", "Path completed")
             self.game_stage = self.STAGE_FREE_STYLE_2

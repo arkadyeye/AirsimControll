@@ -27,6 +27,8 @@ class PDFMaker:
     difference_between_tracks = 0
     date_today = "{:%Y:%m:%d %H:%M}".format(datetime.now())
 
+
+
     # List of phases
     phases = []
 
@@ -40,21 +42,24 @@ class PDFMaker:
         self.has_flight_experience = has_flight_experience
         self.adhd = adhd
 
+
+
     # At the end of each phase -> use function -> save current time and stats -> reset timer
     def update_phase(self, stage, time, distance, fr_distance, optimal_path, user_path):
         self.phases.append(Phase(stage, time, distance, fr_distance, optimal_path, user_path))
 
     def map_plotter(self, stage, user_path, optimal_path):
+
         # Load the image
-        image_path = "SavedPaths//map_v2.png"
-        image = PilImage.open(image_path)
+        image_path = "SavedPaths//map_v2_jpg.jpg"
+        self.image = PilImage.open(image_path)
 
         # The resolution of each saved image, the lower, the less size it takes
-        size = (450, 450)  # Declare a resolution here
-        image = image.resize(size)  # Resize the image file
+        #size = (450, 450)  # Declare a resolution here
+        #image = image.resize(size)  # Resize the image file
 
         # Draw red points on the image with the given coordinates
-        draw = ImageDraw.Draw(image)
+        draw = ImageDraw.Draw(self.image)
 
         if optimal_path is not None:
             point_size = 7
@@ -75,8 +80,8 @@ class PDFMaker:
                              fill=str("blue"))
 
         # Save the image with the red points drawn
-        output_path = "img_" + stage + ".png"
-        image.save(self.folder_name + output_path)
+        output_path = "img_" + stage + ".jpg"
+        self.image.save(self.folder_name + output_path)
 
     def generate_pdf(self):
         # initializing variables with values
@@ -87,7 +92,7 @@ class PDFMaker:
 
         # Define the data for the subtitles and images
         for i in self.phases:
-            i.img_path = self.folder_name + "img_" + i.current_phase + ".png"
+            i.img_path = self.folder_name + "img_" + i.current_phase + ".jpg"
 
         data = {
             'date': str(self.date_today),
