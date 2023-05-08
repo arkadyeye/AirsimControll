@@ -3,6 +3,8 @@ import pygame
 from OperationsFacade import OperationsFacade
 from AirSimFacade import AirSimFacade
 from GameLogicExp1 import GameLogic
+from GameLogicExp2 import GameLogicExp2
+
 from InputDevices.YokeController import YokeController
 from InputDevices.RedWheelController import RedWheelController
 # from HotasXControllerOhad import HotasXController
@@ -94,7 +96,8 @@ emoti_listener = EmotiBitUdp()
 emoti_listener.init()
 
 # init game logic and internal logger
-gameLogic = GameLogic(sim)
+#gameLogic = GameLogic(sim)
+gameLogic = GameLogicExp2(sim)
 
 # Initialize the joysticks
 pygame.joystick.init()

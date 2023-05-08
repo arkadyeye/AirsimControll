@@ -45,13 +45,13 @@ class PDFMaker:
 
 
     # At the end of each phase -> use function -> save current time and stats -> reset timer
-    def update_phase(self, stage, time, distance, fr_distance, optimal_path, user_path):
-        self.phases.append(Phase(stage, time, distance, fr_distance, optimal_path, user_path))
+    def update_phase(self, stage, time, distance, fr_distance,user_path, optimal_path):
+        self.phases.append(Phase(stage, time, distance, fr_distance,user_path, optimal_path))
 
     def map_plotter(self, stage, user_path, optimal_path):
 
         # Load the image
-        image_path = "SavedPaths//map_v2_jpg.jpg"
+        image_path = "SavedPaths//map_v2.jpg"
         self.image = PilImage.open(image_path)
 
         # The resolution of each saved image, the lower, the less size it takes
@@ -179,6 +179,7 @@ class PDFMaker:
 
         doc = SimpleDocTemplate(self.folder_name + file_name, pagesize=A4, showBoundary=0, topMargin=inch * 0.25)
         doc.build(flowables)
+        self.phases.clear()
 
 
 '''
