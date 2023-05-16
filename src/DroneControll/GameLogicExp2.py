@@ -50,10 +50,10 @@ class GameLogicExp2:
     STAGE_NOT_IN_GAME = "not_in_game"
     STAGE_SHORT = "short_1"
     STAGE_LONG = "long_1"
-    round_counter = 0
+    round_counter = 4 #0
     max_rounds = 4
 
-    TIME_GAME_OVER = 600  # 600sec = 10 min
+    TIME_GAME_OVER = 10 #420  # 420sec = 7 min
 
     PATH_DRAW_AHEAD = 3
 
@@ -203,7 +203,7 @@ class GameLogicExp2:
         self.a_z = []
         self.counter = 0
 
-    def advance_next_stage(self):
+    def advance_next_stage(self, realAdvance = True):
 
         # here we should update pdf generator
 
@@ -228,17 +228,18 @@ class GameLogicExp2:
             self.total_dist = round(self.total_dist, 2)
             self.mark = round(self.mark, 2)
 
-            easygui.msgbox("You have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
+            easygui.msgbox("You have done the stage "+str(self.round_counter)+" \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
                            "time:" + str(self.time_train) + " \n" + \
                            "dist: " + str(self.total_dist) + " \n" + \
                            "fr.dist: " + str(df) + " \n" + \
                            "total mark is: " + str(self.mark), "Path completed")
 
-            self.pdfMaker.update_phase(self.STAGE_SHORT+"_"+str(self.round_counter), self.time_train, self.total_dist, df,exp_data, self.optimal_short)
+            self.pdfMaker.update_phase(self.game_stage+"_"+str(self.round_counter), self.time_train, self.total_dist, df,exp_data, self.optimal_short)
 
             # finish training, and load real path
             easygui.msgbox("Ready to start the next thing ?", "Path completed")
-            self.game_stage = self.STAGE_LONG
+            if realAdvance:
+                self.game_stage = self.STAGE_LONG
             self.restart_training()
             return
 
@@ -256,24 +257,28 @@ class GameLogicExp2:
             self.total_dist = round(self.total_dist, 2)
             self.mark = round(self.mark, 2)
 
-            easygui.msgbox("You have done the stage \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
+            easygui.msgbox("You have done stage "+str(self.round_counter)+" \n collisions " + str(self.sim.get_colisons_counter()) + " \n" + \
                            "time:" + str(self.time_train) + " \n" + \
                            "dist: " + str(self.total_dist) + " \n" + \
                            "fr.dist: " + str(df) + " \n" + \
                            "total mark is: " + str(self.mark), "Path completed")
 
-            self.pdfMaker.update_phase(self.STAGE_SHORT+"_"+str(self.round_counter), self.time_train, self.total_dist, df, exp_data, self.optimal_long )
+            self.pdfMaker.update_phase(self.game_stage+"_"+str(self.round_counter), self.time_train, self.total_dist, df, exp_data, self.optimal_long )
 
-            if self.round_counter < self.max_rounds:
-                self.round_counter = self.round_counter + 1
-                easygui.msgbox("Ready to start the next thing ?", "Path completed")
-                self.game_stage = self.STAGE_SHORT
-                self.restart_training()
-            else:
-                easygui.msgbox("You have reached the end of the tsk\nThank you for your time", "Path completed")
-                self.game_stage =  self.STAGE_NOT_IN_GAME
-                self.restart_training()
+            if realAdvance:
+                if self.round_counter < self.max_rounds:
+                    self.round_counter = self.round_counter + 1
+                    easygui.msgbox("Ready to start the next thing ?", "Path completed")
+                    self.game_stage = self.STAGE_SHORT
 
+                else:
+                    easygui.msgbox("You have reached the end of the tsk\nThank you for your time", "Path completed")
+
+                    self.pdfMaker.generate_pdf()
+
+                    self.game_stage = self.STAGE_NOT_IN_GAME
+
+            self.restart_training()
             return
 
     def escape_position(self):  # this function should take you out of a problematic position
@@ -320,15 +325,16 @@ class GameLogicExp2:
         # check if time ended
         if time.time() - self.time_started > self.TIME_GAME_OVER:
             self.finish_path()
-            result = easygui.ynbox("5 minutes is over, do you want to restart teh game (yes) \n or abandon it (no) ?",
+            result = easygui.ynbox("Your time is over, do you want to restart the stage (yes) \n or abandon it (no) ?",
                                    "time up")
             if result:  # means yes
                 self.finish_path()
-                self.restart_training()
+                self.advance_next_stage(False)
                 self.time_started = time.time()
             else:
                 self.finish_path()
-                self.game_stage = self.STAGE_NOT_IN_GAME
+                #self.game_stage = self.STAGE_NOT_IN_GAME
+                self.advance_next_stage(True)
                 return
 
         # update performance analyzer
@@ -369,7 +375,7 @@ class GameLogicExp2:
             # check if experiment ended
             if len(sublist_of_vectors) <= 1:
                 self.finish_path()
-                self.advance_next_stage()
+                self.advance_next_stage(True)
 
     def addCsvHeader(self, csv_header):
         self.csv_header = self.csv_header + "," + csv_header

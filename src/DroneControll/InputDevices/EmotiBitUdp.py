@@ -144,10 +144,10 @@ class EmotiBitUdp:
             self.last_TL_internal_time = splited_string[0]
 
     def get_header_csv(self):
-        return "AX,AY,AZ,GX,GY,GZ,MX,MY,MZ,EDA,EDL,HR,BI,PR,PG,PI,SA,SF,SR,T1,B%,TL,TLI"
+        return "EmotiBit,AX,AY,AZ,GX,GY,GZ,MX,MY,MZ,EDA,EDL,HR,BI,PR,PG,PI,SA,SF,SR,T1,B%,TL,TLI"
 
     def get_status_csv(self):
-        ans = ""
+        ans = "EmotiBit,"
         ans = ans + self.last_acc_x + "," + self.last_acc_y + "," + self.last_acc_z + ","
         ans = ans + self.last_gyro_x + "," + self.last_gyro_y + "," + self.last_gyro_z + ","
         ans = ans + self.last_mag_x + "," + self.last_mag_y + "," + self.last_mag_z + ","

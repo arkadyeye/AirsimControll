@@ -12,6 +12,7 @@ from PathApi import PathApi
 from InputDevices.HotasXController import HotasXController
 from InputDevices.LogitechRacingController import LogitechRacingController
 from InputDevices.LogitechDualAction import LogitechDualAction
+from InputDevices.TrudderPedals import TrudderPedals
 
 from InputDevices.GeneralUdp import PressureUdp
 from InputDevices.EmotiBitUdp import EmotiBitUdp
@@ -127,6 +128,11 @@ for i in range(joystick_count):
 
     if name == "Logitech Dual Action":
         joysticks_list.append(LogitechDualAction(sim))
+
+    if name == "T-Rudder":
+        joysticks_list.append(TrudderPedals(sim))
+
+
 
     gameLogic.addCsvHeader(joysticks_list[-1].getCsvHeader())
     # !!!!!!! add here the preasure from different joystick

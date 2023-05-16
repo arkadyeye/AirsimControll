@@ -72,12 +72,12 @@ class RedWheelController:
 
         # deal with buttons
 
-        # pass speed
-        btn_speed_up = joystick.get_button(2)
-        btn_speed_down = -1 * joystick.get_button(3)
-
-        speed = 0.25 * (btn_speed_up + btn_speed_down)
-        self.drone_controller.add_speed(speed)
+        # # pass speed
+        # btn_speed_up = joystick.get_button(2)
+        # btn_speed_down = -1 * joystick.get_button(3)
+        #
+        # speed = 0.25 * (btn_speed_up + btn_speed_down)
+        # self.drone_controller.add_speed(speed)
 
         # # horizontal movement
         btn_left = joystick.get_button(15)
@@ -85,8 +85,11 @@ class RedWheelController:
         self.drone_controller.set_horizontal_movement((btn_left + btn_right) * 5)
 
         # vertical movement
-        btn_up = joystick.get_button(12)
-        btn_down = joystick.get_button(14)
+        # btn_up = joystick.get_button(12)
+        # btn_down = joystick.get_button(14)
+
+        btn_up = joystick.get_button(0)
+        btn_down = joystick.get_button(3)
         if btn_up == 1:
             self.drone_controller.set_vertical_movement(1)
         if btn_down == 1:

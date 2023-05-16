@@ -11,9 +11,10 @@ from time import sleep
 
 
 class HeadPoseUdp:
-    last_status = ""
+    last_status = "head_pose,n/a,n/a,n/a,n/a"
 
     def listen(self):
+        self.last_status = "head_pose,n/a,n/a,n/a,n/a"
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
         server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         server.bind(("", 42544))
@@ -33,7 +34,7 @@ class HeadPoseUdp:
 
 
     def get_header_csv(self):
-        return "head_x,head_y,head_z,blink"
+        return "head_pose,head_x,head_y,head_z,blink"
 
     def get_status_csv(self):
        return self.last_status

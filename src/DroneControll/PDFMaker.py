@@ -23,6 +23,7 @@ class Phase:
         self.p_optimal_path = p_optimal_path  # Phase optimal path (can be none)
 
 
+
 class PDFMaker:
     difference_between_tracks = 0
     date_today = "{:%Y:%m:%d %H:%M}".format(datetime.now())
@@ -41,12 +42,15 @@ class PDFMaker:
         self.has_license = has_license
         self.has_flight_experience = has_flight_experience
         self.adhd = adhd
+        self.phase_counter = 1000
 
 
 
     # At the end of each phase -> use function -> save current time and stats -> reset timer
     def update_phase(self, stage, time, distance, fr_distance,user_path, optimal_path):
-        self.phases.append(Phase(stage, time, distance, fr_distance,user_path, optimal_path))
+        self.phase_counter = self.phase_counter + 1
+        self.phases.append(Phase(stage+str(self.phase_counter), time, distance, fr_distance,user_path, optimal_path))
+
 
     def map_plotter(self, stage, user_path, optimal_path):
 
