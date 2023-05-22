@@ -303,7 +303,10 @@ while done == False:
 
     # collect data from EmotiBit and Head Tarcker (?)
     gameLogic.addCsvData(head_pose_listener.get_status_csv())
+
     gameLogic.addCsvData(emoti_listener.get_status_csv())
+    gameLogic.addEmotiBitRawData(emoti_listener.get_raw_data())
+
     gameLogic.addCsvData(grip_force_listener.get_status_csv())
 
     # Go ahead and update the screen with what we've drawn.

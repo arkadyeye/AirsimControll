@@ -77,9 +77,12 @@ class EmotiBitUdp:
         self.last_TL = "n/a"
         self.last_TL_internal_time = "n/a"
 
+        #raw data storage
+        self.raw_data_list = []
+
     def parse_update(self,string_data):
 
-        print ("parse called for : ",string_data)
+        #print ("parse called for : ",string_data)
 
         splited_string = string_data.split(",")
         index_of_data = int(splited_string[2]) + 5
@@ -158,6 +161,15 @@ class EmotiBitUdp:
 
         return ans
 
+    def get_raw_data(self):
+        tmp = []
+        while len(self.raw_data_list) > 0:
+            tmp.append(self.raw_data_list.pop(0))
+
+        #tmp = self.raw_data_list
+        #self.raw_data_list.clear()
+        return tmp
+
     def listen(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
         server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -169,6 +181,7 @@ class EmotiBitUdp:
 
             # if 'HR' in string_data:
             #print (string_data)
+            self.raw_data_list.append(string_data)
             self.parse_update(string_data)
     #          here we should get the data, parse it, and somehow store in a convinient way
     #          but maybe we just need it as string ? because in the end, the data will be string in csv

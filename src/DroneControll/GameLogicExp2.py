@@ -50,7 +50,7 @@ class GameLogicExp2:
     STAGE_NOT_IN_GAME = "not_in_game"
     STAGE_SHORT = "short_1"
     STAGE_LONG = "long_1"
-    round_counter = 4 #0
+    round_counter = 0
     max_rounds = 4
 
     TIME_GAME_OVER = 420 #420  # 420sec = 7 min
@@ -84,6 +84,7 @@ class GameLogicExp2:
     is_path_loaded = False
 
     pa = None
+    emotibitLogger = None
     pdfMaker = None
     user_name = ""
     age = ""
@@ -139,6 +140,9 @@ class GameLogicExp2:
         if self.pa is not None:
             self.pa.close()
 
+        if self.emotibitLogger is not None:
+            self.emotibitLogger.close()
+
         if self.pdfMaker is not None:
             self.pdfMaker.generate_pdf()
 
@@ -174,9 +178,11 @@ class GameLogicExp2:
         self.is_time_started = False
 
         # this should be exported to some pdf
-
-        self.sim.flush_persistent_markers()
         self.pa.close()
+        if self.emotibitLogger is not None:
+            self.emotibitLogger.close()
+            self.emotibitLogger = None
+
         print("training time - ", self.time_train)
 
         self.last_collected_waypoint = None
@@ -186,6 +192,7 @@ class GameLogicExp2:
         self.sim.restart_training()
 
         self.pa = PostAnalyser(self.folder_name, self.game_stage+str(self.round_counter), self.csv_header)
+
         if self.game_stage == self.STAGE_SHORT:
             self.load_path_file("SavedPaths\\shraga_2min.json")
         if self.game_stage == self.STAGE_LONG:
@@ -202,6 +209,8 @@ class GameLogicExp2:
         self.a_y = []
         self.a_z = []
         self.counter = 0
+
+        self.is_time_started = False
 
     def advance_next_stage(self, realAdvance = True):
 
@@ -270,15 +279,15 @@ class GameLogicExp2:
                     self.round_counter = self.round_counter + 1
                     easygui.msgbox("Ready to start the next thing ?", "Path completed")
                     self.game_stage = self.STAGE_SHORT
+                    self.restart_training()
 
                 else:
                     easygui.msgbox("You have reached the end of the tsk\nThank you for your time", "Path completed")
 
                     self.pdfMaker.generate_pdf()
-
                     self.game_stage = self.STAGE_NOT_IN_GAME
 
-            self.restart_training()
+
             return
 
     def escape_position(self):  # this function should take you out of a problematic position
@@ -382,6 +391,16 @@ class GameLogicExp2:
 
     def addCsvData(self, csv_data):
         self.csv_line = self.csv_line + "," + csv_data
+
+    def addEmotiBitRawData(self,rawdata):
+
+        if self.emotibitLogger is None and self.pa is not None and self.game_stage != self.STAGE_NOT_IN_GAME :
+            print ("raw emoti file: "+self.folder_name + "//" + self.game_stage + "_" + str(self.round_counter) + ".emotibit")
+            self.emotibitLogger = open(self.folder_name + "//" + self.game_stage + "_" + str(self.round_counter) + ".emotibit", "w")
+
+        if self.emotibitLogger is not None:
+            for x in rawdata:
+                self.emotibitLogger.write(x+"\n")
 
     def load_path_file(self, filename):
 
