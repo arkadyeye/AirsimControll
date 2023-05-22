@@ -28,6 +28,11 @@ class RedWheelController:
     joystick_name = "PS(R) Gamepad Adaptor"
     csv_name = "r_wheel"
 
+    speed = 0
+    speed_activated = False
+    vertical_speed_activated = False
+    horizontal_speed_activated = False
+
 
     def __init__(self, drone_controller):
         print("Red Wheel created")

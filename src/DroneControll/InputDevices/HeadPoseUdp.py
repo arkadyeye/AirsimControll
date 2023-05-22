@@ -28,7 +28,7 @@ class HeadPoseUdp:
 
             if string_data.startswith("HP:"):
                 self.last_status = string_data[3:]
-                print(self.last_status)
+               # print(self.last_status)
     #          here we should get the data, parse it, and somehow store in a convinient way
     #          but maybe we just need it as string ? because in the end, the data will be string in csv
 
@@ -37,7 +37,7 @@ class HeadPoseUdp:
         return "head_pose,head_x,head_y,head_z,blink"
 
     def get_status_csv(self):
-       return self.last_status
+       return "head,"+self.last_status
 
 
     def init(self):

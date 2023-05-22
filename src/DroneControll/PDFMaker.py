@@ -49,7 +49,8 @@ class PDFMaker:
     # At the end of each phase -> use function -> save current time and stats -> reset timer
     def update_phase(self, stage, time, distance, fr_distance,user_path, optimal_path):
         self.phase_counter = self.phase_counter + 1
-        self.phases.append(Phase(stage+str(self.phase_counter), time, distance, fr_distance,user_path, optimal_path))
+        self.phases.append(Phase(stage+"_"+str(self.phase_counter), time, distance, fr_distance,user_path, optimal_path))
+        #print ("phase added")
 
 
     def map_plotter(self, stage, user_path, optimal_path):

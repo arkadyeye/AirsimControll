@@ -46,6 +46,10 @@ class HotasXController:
         print("hotas X created")
         self.drone_controller = drone_controller
 
+    def getCsvHeader(self):
+        return "stick,axis0,axis1,axis2,axis3,axis4,btn0,btn1,btn2,btn3,btn4,btn5,btn6,btn7,btn8,btn9,btn10,btn11,hat_x,hat_y"
+
+
     def getCsvState(self, joystick):
         ans = self.csv_name
         axes = joystick.get_numaxes()

@@ -39,7 +39,7 @@ class LogitechDualAction:
     def getCsvHeader(self):
         # logitec dual stick joystik has 4 axis, 12 buttons, and one hat
         # so it means 18 places
-        return "name, yaw,v_speed,h_speed,speed,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,hat_x,hat_y"
+        return "d_stick,yaw,v_speed,h_speed,speed,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,btn,hat_x,hat_y"
 
     def getCsvState(self, joystick):
         ans = self.csv_name

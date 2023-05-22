@@ -18,6 +18,9 @@ from InputDevices.GeneralUdp import PressureUdp
 from InputDevices.EmotiBitUdp import EmotiBitUdp
 
 from InputDevices.HeadPoseUdp import HeadPoseUdp
+from InputDevices.GripForceUdp import GripForceUdp
+
+
 
 
 
@@ -90,6 +93,10 @@ sim.add_path_api(pathApi)
 #pressure_listener = PressureUdp()
 #pressure_listener.init()
 
+grip_force_listener = GripForceUdp()
+grip_force_listener.init()
+
+
 head_pose_listener = HeadPoseUdp()
 head_pose_listener.init()
 
@@ -132,15 +139,15 @@ for i in range(joystick_count):
     if name == "T-Rudder":
         joysticks_list.append(TrudderPedals(sim))
 
-
-
     gameLogic.addCsvHeader(joysticks_list[-1].getCsvHeader())
-    # !!!!!!! add here the preasure from different joystick
 
 
 # add header of emotibit and head tracker(?)
 gameLogic.addCsvHeader(head_pose_listener.get_header_csv())
 gameLogic.addCsvHeader(emoti_listener.get_header_csv())
+gameLogic.addCsvHeader(grip_force_listener.get_header_csv())
+
+
 
 
 # Get ready to print
@@ -199,9 +206,27 @@ while done == False:
     joystick1.init()
     # print ("joy 1 axis",joystick1.get_axis(0))
 
+    # DONT ASK why this ugly code. for unknown reason,it does not work with the loop
+
     if joystick_count > 1:
         joystick2 = pygame.joystick.Joystick(1)
         joystick2.init()
+
+    if joystick_count > 2:
+        joystick3 = pygame.joystick.Joystick(2)
+        joystick3.init()
+
+    if joystick_count > 3:
+        joystick4 = pygame.joystick.Joystick(3)
+        joystick4.init()
+
+    if joystick_count > 4:
+        joystick5 = pygame.joystick.Joystick(4)
+        joystick5.init()
+
+    if joystick_count > 5:
+        joystick6 = pygame.joystick.Joystick(5)
+        joystick6.init()
     # print("joy 2 axis", joystick2.get_axis(0))
 
 
@@ -279,6 +304,7 @@ while done == False:
     # collect data from EmotiBit and Head Tarcker (?)
     gameLogic.addCsvData(head_pose_listener.get_status_csv())
     gameLogic.addCsvData(emoti_listener.get_status_csv())
+    gameLogic.addCsvData(grip_force_listener.get_status_csv())
 
     # Go ahead and update the screen with what we've drawn.
     pygame.display.flip()

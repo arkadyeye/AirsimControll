@@ -68,8 +68,8 @@ def blink_detector(image, results):
                       results.multi_face_landmarks[0].landmark]
 
         ratio = blink_ratio(image, mesh_coords, RIGHT_EYE, LEFT_EYE)
-        if ratio > 3.9:
-            # cv2.putText(image, "BLINKED: ", (500, 200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        if ratio > 3.9: # 3.9
+            cv2.putText(image, "BLINKED: ", (500, 200), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
             return True
     return False
 
@@ -190,8 +190,8 @@ while cap.isOpened():
         # HP for HeadPose
         msg = "HP:"+str(round(head_pose[0],3))+","+str(round(head_pose[1],3))+","+str(round(head_pose[2],3))+","+str(round(is_blink,3))
 
-        if debug_mode:
-            print("status: "+msg)
+        # if debug_mode:
+        #     print("status: "+msg)
         sock.sendto(msg.encode(), (UDP_IP, UDP_PORT))
 
     cv2.imshow('Head Pose Estimation', image)

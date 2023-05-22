@@ -10,17 +10,20 @@ import time
 
 from datetime import datetime
 
+take_counter = 1
 
 class PostAnalyser:
     csv_file = None
     full_line = ""
+    
 
 
     def __init__(self,folder_name,state,header):
-
+        global take_counter
         #create csv file for the results
-        self.csv_file = open(folder_name + "//"+state+".csv", "w")
+        self.csv_file = open(folder_name + "//"+state+"_"+str(take_counter)+".csv", "w")
         self.csv_file.write("timeMS,x,y,z,yaw,collisions,"+header+"\n")
+        take_counter = take_counter +1
 
         ##f.close()
 

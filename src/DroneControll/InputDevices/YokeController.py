@@ -56,6 +56,13 @@ class YokeController:
         print ("yoke created")
         self.drone_controller = drone_controller
 
+
+    def getCsvHeader(self):
+        # logitec dual stick joystik has 4 axis, 12 buttons, and one hat
+        # so it means 18 places
+        return "yoke,axis0,axis1,axis2,axis3,axis4,axis5,btn0,btn1,btn2,btn3,btn4,btn5,btn6,btn7,btn8,btn9,btn10,btn11,btn12,btn13,btn14,btn15,btn16,btn17,hat_x,hat_y"
+
+
     def getCsvState(self, joystick):
         ans = self.csv_name
         axes = joystick.get_numaxes()

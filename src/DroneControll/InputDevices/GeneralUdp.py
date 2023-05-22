@@ -15,7 +15,7 @@ class PressureUdp:
     def listen(self):
         server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  # UDP
         server.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        server.bind(("", 42544))
+        server.bind(("", 42533))
 
         print("starting upd server")
         while True:
@@ -24,24 +24,24 @@ class PressureUdp:
             # print("received message: %s" % data)
             # if 'HR' in string_data:
             print (string_data)
-            if string_data.startswith("HP:"):
-                pass
+            #if string_data.startswith("HP:"):
+            #    pass
     #          here we should get the data, parse it, and somehow store in a convinient way
     #          but maybe we just need it as string ? because in the end, the data will be string in csv
 
 
     def get_header_csv(self):
-        return "AX,AY,AZ,GX,GY,GZ,MX,MY,MZ,EDA,EDL,HR,BI,PR,PG,PI,SA,SF,SR,T1,B%,TL,TLI"
+        return "fsr,test"
 
     def get_status_csv(self):
         ans = ""
-        ans = ans + self.last_acc_x + "," + self.last_acc_y + "," + self.last_acc_z + ","
-        ans = ans + self.last_gyro_x + "," + self.last_gyro_y + "," + self.last_gyro_z + ","
-        ans = ans + self.last_mag_x + "," + self.last_mag_y + "," + self.last_mag_z + ","
-        ans = ans + self.last_EDA + "," + self.last_EDL + "," + self.last_HR + "," + self.last_BI + ","
-        ans = ans + self.last_PR + "," + self.last_PG + "," + self.last_PI + ","
-        ans = ans + self.last_SA + "," + self.last_SF + "," + self.last_SR + "," + self.last_T1 + ","
-        ans = ans + self.last_battery + "," + self.last_TL + "," + self.last_TL_internal_time
+        # ans = ans + self.last_acc_x + "," + self.last_acc_y + "," + self.last_acc_z + ","
+        # ans = ans + self.last_gyro_x + "," + self.last_gyro_y + "," + self.last_gyro_z + ","
+        # ans = ans + self.last_mag_x + "," + self.last_mag_y + "," + self.last_mag_z + ","
+        # ans = ans + self.last_EDA + "," + self.last_EDL + "," + self.last_HR + "," + self.last_BI + ","
+        # ans = ans + self.last_PR + "," + self.last_PG + "," + self.last_PI + ","
+        # ans = ans + self.last_SA + "," + self.last_SF + "," + self.last_SR + "," + self.last_T1 + ","
+        # ans = ans + self.last_battery + "," + self.last_TL + "," + self.last_TL_internal_time
 
         return ans
 

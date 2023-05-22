@@ -53,7 +53,7 @@ class GameLogicExp2:
     round_counter = 4 #0
     max_rounds = 4
 
-    TIME_GAME_OVER = 10 #420  # 420sec = 7 min
+    TIME_GAME_OVER = 420 #420  # 420sec = 7 min
 
     PATH_DRAW_AHEAD = 3
 
